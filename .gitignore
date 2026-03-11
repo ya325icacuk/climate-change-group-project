@@ -9,3 +9,7 @@ data/
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
+report/1page/report.fls
+report/1page/report.aux
+report/1page/report.fdb_latexmk
+report/1page/report.out

@@ -1,0 +1,148 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[top=1.5cm, bottom=1.5cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+
+% Compact spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\columnsep}{12pt}
+\titlespacing*{\section}{0pt}{4pt}{2pt}
+\titleformat{\section}{\normalfont\bfseries\small}{\thesection.}{0.4em}{}
+
+\pagestyle{empty}
+
+\begin{document}
+
+% ── Title ──────────────────────────────────────────────────────────
+\begin{center}
+{\large\bfseries Cross-Basin Generalization for Tropical Cyclone Forecasting\\using TropiCycloneNet}\\[3pt]
+{\small Samuel Zhang, Loïc Bouxirot, Yasmin Akhmedova}\\
+{\small\itshape Imperial College London --- ELEC70127 ML for Tackling Climate Change}
+\end{center}
+
+\vspace{-2pt}
+\hrule
+\vspace{4pt}
+
+% ── Two-column body ───────────────────────────────────────────────
+\begin{multicols}{2}
+
+\section*{Problem Context}
+
+Tropical cyclone (TC) forecasting in data-scarce ocean basins is limited by small
+training sets. The South Pacific (SP) contains 5$\times$ fewer storms than the
+Western Pacific (WP) in the TropiCycloneNet dataset (30 vs.\ 131 storms),
+making it impractical to train reliable models on SP alone~[1].
+Transfer learning from data-rich to data-scarce basins is a natural solution,
+yet a fundamental physical barrier exists: the Coriolis force reverses across
+hemispheres, causing WP storms to track NW/W while SP storms track SE/W/SW.
+
+Despite this directional shift, the underlying atmospheric physics governing TC
+intensity, sea-surface temperature (SST) and vertical wind shear, is shared
+across basins~[3]. A physics-aware model that disentangles
+hemisphere-dependent kinematics from universal thermodynamics should therefore
+transfer effectively with minimal adaptation. We encode the Coriolis reversal
+through a phase shift on directional labels, following evidence that
+WP-only models fail on Southern Hemisphere basins without hemisphere-aware
+preprocessing~[1].
+
+\section*{Proposed Approach}
+
+We evaluate \textbf{five architectures} on zero-shot WP$\to$SP transfer,
+then fine-tune the best performers:
+
+\vspace{-2pt}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Model} & \textbf{Transfer hypothesis} \\
+\midrule
+U-Net & Spatial baseline; strong 3D field reconstruction \\
+ResNet & Deep residual features; proven image classifier \\
+FNO & Mesh-invariant; spectral basin-agnostic maps \\
+PI-GAN & Adversarial + vorticity/PV conservation \\
+Transformer & Cross-attention fusion of 3 modalities \\
+\bottomrule
+\end{tabularx}
+}
+\vspace{2pt}
+
+\textbf{Three-stage pipeline:}
+\begin{enumerate}[nosep, leftmargin=1.2em, label=\arabic*.]
+  \item \textbf{Zero-shot}: Train on WP, apply Coriolis phase shift, evaluate on SP.
+  \item \textbf{Fine-tune}: Adapt top models on 10/25/50\% of SP data; measure accuracy vs.\ compute.
+  \item \textbf{Extend}: Test generalization to NI and SI basins.
+\end{enumerate}
+
+\section*{Dataset}
+
+TropiCycloneNet~[1] covers 6 ocean basins (1950--2023) with three modalities
+at 6-hourly resolution: \textbf{Data1D} (cyclone-center time series from
+IBTrACS~[5]), \textbf{Data3D} (81$\times$81 gridded SST, u/v wind,
+geopotential at 0.25\textdegree), and \textbf{Env-Data} (structured
+environmental features).
+
+\begin{tabular}{lccc}
+\toprule
+& \textbf{WP} & \textbf{SP} & \textbf{Ratio} \\
+\midrule
+Storms & 131 & 30 & 4.4$\times$ \\
+Timesteps & 4{,}562 & 922 & 5.0$\times$ \\
+Top directions & NW/W & SE/W & Mirrored \\
+Mean shear & 8.2\,m/s & 7.4\,m/s & Similar \\
+\bottomrule
+\end{tabular}
+
+
+Wind shear and SST distributions overlap substantially between WP and SP
+(Fig.~4), confirming that universal intensity predictors~[3]
+should transfer. Direction distributions are hemisphere-mirrored (Fig.~3),
+validating our Coriolis phase-shift preprocessing.
+
+\end{multicols}
+
+\vspace{2pt}
+
+% ── Figures row ───────────────────────────────────────────────────
+\begin{figure}[h!]
+\centering
+\begin{subfigure}[b]{0.3\columnwidth}
+  \includegraphics[width=\textwidth]{../../figures/basin_similarity_matrix.png}
+  \caption*{{\scriptsize\textbf{Fig.~1}: Storm counts per basin. SP has 5$\times$ fewer storms than WP, motivating transfer learning.}}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\columnwidth}
+  \includegraphics[width=\textwidth]{../../figures/track_map.png}
+  \caption*{{\scriptsize\textbf{Fig.~2}: WP vs SP storm tracks. Geographic separation and hemisphere flip are clearly visible.}}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\columnwidth}
+  \includegraphics[width=\textwidth]{../../figures/direction_distribution.png}
+  \caption*{{\scriptsize\textbf{Fig.~3}: Direction polar roses showing hemisphere-mirrored movement patterns (WP: NW/W; SP: SE/W).}}
+\end{subfigure}\hfill
+\begin{subfigure}[b]{0.3\columnwidth}
+  \includegraphics[width=\textwidth]{../../figures/shear_distribution.png}
+  \caption*{{\scriptsize\textbf{Fig.~4}: SST and shear distributions overlap across basins---physics transfers despite directional shift.}}
+\end{subfigure}
+\end{figure}
+
+\vspace{-6pt}
+
+% ── References ────────────────────────────────────────────────────
+{\scriptsize
+\textbf{References}~~
+[1]~Huang et al., ``Benchmark dataset and deep learning method for global tropical cyclone forecasting,'' \textit{Nat.\ Commun.}, 2025.\quad
+[2]~Qu et al., ``Accurate tropical cyclone intensity forecasts using a non-iterative spatiotemporal transformer model,'' \textit{npj Clim.\ Atmos.\ Sci.}, 2025.\quad
+[3]~DeMaria \& Kaplan, ``A Statistical Hurricane Intensity Prediction Scheme (SHIPS),'' \textit{Wea.\ Forecasting}, 1994.\quad
+[4]~Chen et al., ``FourCastNet: Adaptive Fourier Neural Operators for weather forecasting,'' \textit{arXiv:2202.11214}, 2022.\quad
+[5]~Knapp et al., ``IBTrACS,'' \textit{Bull.\ Amer.\ Meteor.\ Soc.}, 2010.
+}
+
+\end{document}
