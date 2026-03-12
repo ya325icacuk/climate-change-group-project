@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) (preloaded format=pdflatex 2026.3.11)  11 MAR 2026 18:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) (preloaded format=pdflatex 2026.3.12)  12 MAR 2026 13:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -357,15 +357,15 @@ LaTeX Font Info:    ... okay on input line 24.
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * modes: 
-* h-part:(L,W,R)=(42.67912pt, 512.14963pt, 42.67912pt)
-* v-part:(T,H,B)=(28.45274pt, 773.91498pt, 42.67912pt)
+* h-part:(L,W,R)=(34.14322pt, 529.22144pt, 34.14322pt)
+* v-part:(T,H,B)=(22.76228pt, 793.83182pt, 28.45274pt)
 * \paperwidth=597.50787pt
 * \paperheight=845.04684pt
-* \textwidth=512.14963pt
-* \textheight=773.91498pt
-* \oddsidemargin=-29.59087pt
-* \evensidemargin=-29.59087pt
-* \topmargin=-80.81725pt
+* \textwidth=529.22144pt
+* \textheight=793.83182pt
+* \oddsidemargin=-38.12677pt
+* \evensidemargin=-38.12677pt
+* \topmargin=-86.5077pt
 * \headheight=12.0pt
 * \headsep=25.0pt
 * \topskip=9.0pt
@@ -413,33 +413,28 @@ Package hyperref Info: Link coloring OFF on input line 24.
 <../../figures/basin_similarity_matrix.png, id=4, 505.89pt x 433.62pt>
 File: ../../figures/basin_similarity_matrix.png Graphic file (type png)
 <use ../../figures/basin_similarity_matrix.png>
-Package pdftex.def Info: ../../figures/basin_similarity_matrix.png  used on input line 95.
-(pdftex.def)             Requested size: 250.07481pt x 214.35474pt.
+Package pdftex.def Info: ../../figures/basin_similarity_matrix.png  used on input line 94.
+(pdftex.def)             Requested size: 258.61072pt x 221.66597pt.
 <../../figures/track_map.png, id=6, 823.6371pt x 435.7881pt>
 File: ../../figures/track_map.png Graphic file (type png)
 <use ../../figures/track_map.png>
-Package pdftex.def Info: ../../figures/track_map.png  used on input line 100.
-(pdftex.def)             Requested size: 250.07481pt x 132.31339pt.
+Package pdftex.def Info: ../../figures/track_map.png  used on input line 99.
+(pdftex.def)             Requested size: 258.61072pt x 136.82845pt.
 <../../figures/direction_distribution.png, id=7, 786.7794pt x 390.4989pt>
 File: ../../figures/direction_distribution.png Graphic file (type png)
 <use ../../figures/direction_distribution.png>
-Package pdftex.def Info: ../../figures/direction_distribution.png  used on input line 104.
-(pdftex.def)             Requested size: 250.07481pt x 124.11609pt.
+Package pdftex.def Info: ../../figures/direction_distribution.png  used on input line 103.
+(pdftex.def)             Requested size: 258.61072pt x 128.35855pt.
 <../../figures/shear_distribution.png, id=8, 641.7576pt x 352.1958pt>
 File: ../../figures/shear_distribution.png Graphic file (type png)
 <use ../../figures/shear_distribution.png>
-Package pdftex.def Info: ../../figures/shear_distribution.png  used on input line 108.
-(pdftex.def)             Requested size: 250.07481pt x 137.23758pt.
-
-Overfull \vbox (3.37029pt too high) has occurred while \output is active []
-
+Package pdftex.def Info: ../../figures/shear_distribution.png  used on input line 107.
+(pdftex.def)             Requested size: 258.61072pt x 141.92377pt.
 
 
 [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <../../figures/basin_similarity_matrix.png> <../../figures/track_map.png> <../../figures/direction_distribution.png> <../../figures/shear_distribution.png>]
-
-[2] (./report.aux)
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <../../figures/basin_similarity_matrix.png> <../../figures/track_map.png> <../../figures/direction_distribution.png> <../../figures/shear_distribution.png>] (./report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -448,18 +443,18 @@ Package rerunfilecheck Info: File `report.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 11374 strings out of 475178
- 184591 string characters out of 5766539
- 607959 words of memory out of 5000000
- 34254 multiletter control sequences out of 15000+600000
- 562329 words of font info for 47 fonts, out of 8000000 for 9000
+ 11371 strings out of 475178
+ 184566 string characters out of 5766539
+ 606956 words of memory out of 5000000
+ 34253 multiletter control sequences out of 15000+600000
+ 561977 words of font info for 46 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,8n,79p,880b,457s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb>
-Output written on report.pdf (2 pages, 1771151 bytes).
+ 75i,8n,79p,811b,430s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb>
+Output written on report.pdf (1 page, 1757219 bytes).
 PDF statistics:
- 84 PDF objects out of 1000 (max. 8388607)
- 49 compressed objects within 1 object stream
- 6 named destinations out of 1000 (max. 500000)
+ 75 PDF objects out of 1000 (max. 8388607)
+ 43 compressed objects within 1 object stream
+ 5 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
