@@ -1,0 +1,12 @@
+torch>=2.0
+numpy
+pandas
+matplotlib
+seaborn
+scipy
+xarray
+netCDF4
+cartopy
+gdown
+shap
+optuna
