@@ -1,0 +1,21 @@
+{
+  "best_params": {
+    "hidden_ch": 64,
+    "n_modes": 12,
+    "n_blocks": 3,
+    "padding": 13,
+    "context_dim": 32,
+    "head_dim": 192,
+    "dropout": 0.2,
+    "label_smoothing": 0.0,
+    "dir_weight": 0.5,
+    "lambda_phys": 0.08699061951552634,
+    "lr": 0.00023063755032385523,
+    "weight_decay": 0.004816177683394974,
+    "scheduler": "onecycle"
+  },
+  "best_value": 0.594392523364486,
+  "n_trials": 60,
+  "n_completed": 30,
+  "n_pruned": 30
+}

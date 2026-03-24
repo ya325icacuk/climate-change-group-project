@@ -7,7 +7,7 @@ For each split and each storm, computes a tensor of shape (N_t, 6):
 Timesteps missing from Data1D are filtered out to stay aligned with the
 grid/env/data1d/label .pt files produced by data-preprocessing-pipeline.ipynb.
 
-Output: data/processed-v2/time/{split}_time.pt  (dict of {storm_name: tensor})
+Output: data/processed-data/time/{split}_time.pt  (dict of {storm_name: tensor})
 """
 
 import math
@@ -16,12 +16,12 @@ import torch
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = PROJECT_ROOT / "data" / "processed-v2"
+DATA_DIR = PROJECT_ROOT / "data" / "processed-data"
 INDEX_PATH = DATA_DIR / "split_index.csv"
 OUT_DIR = DATA_DIR / "time"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-TCND_ROOT = PROJECT_ROOT / "data" / "tropicyclonenet" / "TCND_test" / "TCND_test"
+TCND_ROOT = PROJECT_ROOT / "data" / "tropicyclonenet" / "TCND_small_dataset" / "TCND_small_dataset"
 BASINS = ["WP", "SP"]
 SPLIT_NAMES = ["wp_train", "wp_val", "sp_test", "sp_ft_train", "sp_ft_val"]
 TWO_PI = 2.0 * math.pi
