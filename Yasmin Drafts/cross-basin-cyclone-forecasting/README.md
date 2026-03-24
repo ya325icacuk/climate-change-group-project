@@ -29,13 +29,14 @@ cross-basin-cyclone-forecasting/
     │   ├── data-preprocessing-pipeline.ipynb         ← Shared data preprocessing
     │   └── temporal-feature-extraction.py            ← Temporal feature extraction script
     ├── models/
-    │   ├── unet-baseline.ipynb                       ← Baseline U-Net
-    │   ├── unet-film-temporal.ipynb                  ← U-Net + FiLM time conditioning
-    │   ├── fno-baseline.ipynb                        ← Baseline FNO
-    │   ├── fno-v2-padded-film.ipynb                  ← FNO v2 (padding + 3 layers + FiLM)
-    │   └── ufno-hybrid.ipynb                         ← U-FNO hybrid gated architecture
+    │   ├── model-1a-unet.ipynb                       ← Model 1a: U-Net (baseline spatial)
+    │   ├── model-1b-unet-film.ipynb                  ← Model 1b: U-Net + FiLM (final spatial)
+    │   ├── model-2a-fno.ipynb                        ← Model 2a: FNO (baseline spectral)
+    │   ├── model-2b-fno-film.ipynb                   ← Model 2b: FNO + FiLM (padding + temporal)
+    │   └── model-2c-ufno.ipynb                       ← Model 2c: U-FNO (final spectral hybrid)
     └── supplementary-analysis/
         ├── feature-ablation-and-shap.ipynb           ← Ablation study + SHAP explainability
+        ├── ablation-and-shap-comparison.ipynb        ← Ablation + SHAP on both final models
         └── model-comparison.ipynb                    ← 6-model comparison & visualisations
 ```
 
@@ -49,9 +50,9 @@ pip install -r requirements.txt
 
 ### 2. Data
 
-**Pre-processed, model-ready data is included** in `data/processed/` (~2.1 GB). All model training, evaluation, and analysis notebooks load directly from this folder — no additional download or preprocessing is required to run them.
+**Pre-processed, model-ready data is included** in `data/processed-data/` (~1.4 GB). All model training, evaluation, and analysis notebooks load directly from this folder — no additional download or preprocessing is required to run them.
 
-The raw TCND dataset (~8.7 GB) is **not** included. It is only needed if you want to reproduce the preprocessing from scratch. See `data/DATA_GUIDE.md` for full details on what is included, what is not, and how to regenerate everything from raw data if needed.
+The raw TCND dataset (~5.4 GB) is **not** included. It is only needed if you want to reproduce the preprocessing from scratch. See `data/DATA_GUIDE.md` for full details on what is included, what is not, and how to regenerate everything from raw data if needed.
 
 ### 3. Running Order
 
@@ -63,8 +64,8 @@ Since the processed data and trained checkpoints are already included, you can j
 
 To reproduce everything from scratch (optional):
 1. Download raw TCND data — see `supplementary-notebooks/preprocessing/data-preprocessing-pipeline.ipynb`
-2. Run the preprocessing notebook to regenerate `data/processed/`
-3. Run `supplementary-notebooks/preprocessing/temporal-feature-extraction.py` to regenerate temporal features
+2. Run the preprocessing notebook to regenerate `data/processed-data/`
+3. Run `supplementary-notebooks/preprocessing/temporal-feature-extraction.ipynb` to regenerate temporal features
 
 ### 4. Checkpoints
 
@@ -72,24 +73,26 @@ Pre-trained model weights are in `checkpoints/`. Available checkpoints:
 
 | Checkpoint | Model | Description |
 | --- | --- | --- |
-| `unet_best_wp.pt` | U-Net | WP-trained baseline |
-| `unet_best_ft.pt` | U-Net | SP fine-tuned baseline |
-| `fno_best_wp.pt` | FNO | WP-trained baseline |
-| `fno_best_ft.pt` | FNO | SP fine-tuned baseline |
-| `fno_v2_best_wp.pt` | FNO v2 | WP-trained (padded + FiLM) |
-| `fno_v2_best_ft.pt` | FNO v2 | SP fine-tuned (padded + FiLM) |
-
-> Checkpoints for U-Net+FiLM and U-FNO will be added once training completes.
+| `unet_best_wp.pt` | Model 1a: U-Net | WP-trained baseline |
+| `unet_best_ft.pt` | Model 1a: U-Net | SP fine-tuned baseline |
+| `unet_film_best_wp.pt` | Model 1b: U-Net + FiLM | WP-trained (final spatial) |
+| `unet_film_best_ft.pt` | Model 1b: U-Net + FiLM | SP fine-tuned (final spatial) |
+| `fno_best_wp.pt` | Model 2a: FNO | WP-trained baseline |
+| `fno_best_ft.pt` | Model 2a: FNO | SP fine-tuned baseline |
+| `fno_v2_best_wp.pt` | Model 2b: FNO + FiLM | WP-trained (padded + FiLM) |
+| `fno_v2_best_ft.pt` | Model 2b: FNO + FiLM | SP fine-tuned (padded + FiLM) |
+| `ufno_best_wp.pt` | Model 2c: U-FNO | WP-trained (final spectral) |
+| `ufno_best_ft.pt` | Model 2c: U-FNO | SP fine-tuned (final spectral) |
 
 ## Models
 
-| Model | Notebook | Time-aware | Key Idea |
-| --- | --- | --- | --- |
-| U-Net (baseline) | `unet-baseline.ipynb` | No | SE attention, residual blocks, DropPath |
-| U-Net + FiLM | `unet-film-temporal.ipynb` | Yes | FiLM temporal conditioning on baseline U-Net |
-| FNO (baseline) | `fno-baseline.ipynb` | No | 2 spectral layers, frequency-domain learning |
-| FNO v2 | `fno-v2-padded-film.ipynb` | Yes | Reflect padding, 3 layers, FiLM |
-| U-FNO | `ufno-hybrid.ipynb` | Yes | 3-branch gated hybrid (spectral + U-Net + residual) |
+| ID | Short Name | Notebook | FiLM | Key Idea |
+| --- | --- | --- | --- | --- |
+| **1a** | U-Net | `model-1a-unet.ipynb` | No | SE attention, residual blocks, DropPath |
+| **1b** | U-Net + FiLM | `model-1b-unet-film.ipynb` | Yes | Temporal conditioning on baseline U-Net |
+| **2a** | FNO | `model-2a-fno.ipynb` | No | 2 spectral layers, frequency-domain learning |
+| **2b** | FNO + FiLM | `model-2b-fno-film.ipynb` | Yes | Reflect padding, 3 layers, FiLM |
+| **2c** | U-FNO | `model-2c-ufno.ipynb` | Yes | 3-branch gated hybrid (spectral + U-Net + residual) |
 
 ## References
 
