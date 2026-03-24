@@ -51,8 +51,8 @@ IN_CHANNELS     = 15      # SST + u/v/z at 4 pressure levels + shear + vorticity
 BATCH_SIZE  = 64
 LR          = 5e-4
 WEIGHT_DECAY = 1e-3
-EPOCHS      = 80
-PATIENCE    = 15          # early stopping patience
+EPOCHS      = 300
+PATIENCE    = 50          # early stopping patience
 DIR_WEIGHT  = 0.5         # loss = DIR_WEIGHT * L_dir + (1 - DIR_WEIGHT) * L_int
 OPTIMIZER   = "adamw"     # "adamw" or "muon"
 
@@ -62,8 +62,8 @@ USE_1D  = True            # fuse 4-dim 1D features (lat, lon, wind, pressure)
 
 # ── Fine-tuning ──
 FT_LR       = 1e-4
-FT_EPOCHS   = 40
-FT_PATIENCE = 10
+FT_EPOCHS   = 80
+FT_PATIENCE = 15
 
 # ── Task ──
 N_DIR_CLASSES = 8
@@ -440,242 +440,43 @@ with torch.no_grad():
 # In[9]:
 
 
-import optuna, gc
-from optuna.trial import TrialState
-optuna.logging.set_verbosity(optuna.logging.WARNING)
+# SKIP Optuna — using hardcoded best hyperparameters
+# Determined from 60-trial Optuna search (30 epochs each, median pruner).
+# Best trial #55: val_dir_acc = 0.6384
 
-# ── Fixed references for the objective ──
-_loader_train = loaders["wp_train"]
-_loader_val   = loaders["wp_val"]
-_dir_weights  = dir_weights.to(DEVICE)
-_int_weights  = int_weights.to(DEVICE)
+print("=" * 60)
+print("Using hardcoded best hyperparameters (from Optuna search)")
+print("  Optuna best trial val dir_acc: 0.6384 (30-epoch proxy)")
+print("=" * 60)
 
-OPTUNA_EPOCHS   = 30   # max epochs per trial
-OPTUNA_PATIENCE = 8    # early stopping within trial
-N_TRIALS        = 60   # total trials — ~30 min on RTX 5090
+class _FakeStudy:
+    best_value = 0.6384
+    best_params = {
+        "hidden_channels": 80,
+        "n_modes": 20,
+        "n_layers": 2,
+        "head_dim": 64,
+        "dropout": 0.05,
+        "label_smoothing": 0.0,
+        "dir_weight": 0.7,
+        "aug_hflip": False,
+        "aug_vflip": False,
+        "lr": 0.0007831506014327231,
+        "weight_decay": 0.003614804534116187,
+        "optimizer": "muon",
+        "scheduler": "cosine",
+    }
 
-
-def _cleanup_gpu():
-    """Aggressively free GPU memory between trials."""
-    gc.collect()
-    torch.cuda.empty_cache()
-    torch.cuda.ipc_collect()
-
-
-def objective(trial):
-    # ── Architecture ──
-    hid    = trial.suggest_int("hidden_channels", 32, 96, step=16)
-    modes  = trial.suggest_int("n_modes", 8, 24, step=4)
-    layers = trial.suggest_int("n_layers", 2, 6)
-    head   = trial.suggest_int("head_dim", 64, 256, step=64)
-
-    # ── Regularisation ──
-    dropout        = trial.suggest_float("dropout", 0.0, 0.3, step=0.05)
-    label_smooth   = trial.suggest_float("label_smoothing", 0.0, 0.15, step=0.05)
-    dir_weight     = trial.suggest_float("dir_weight", 0.3, 0.7, step=0.1)
-
-    # ── Augmentation ──
-    aug_hflip = trial.suggest_categorical("aug_hflip", [True, False])
-    aug_vflip = trial.suggest_categorical("aug_vflip", [True, False])
-
-    # ── Optimiser ──
-    lr = trial.suggest_float("lr", 1e-4, 3e-3, log=True)
-    wd = trial.suggest_float("weight_decay", 1e-4, 5e-3, log=True)
-    optim_name = trial.suggest_categorical("optimizer", ["adamw", "muon"])
-
-    # ── Scheduler ──
-    sched_name = trial.suggest_categorical("scheduler", ["cosine", "onecycle"])
-
-    # ── Build model on CPU first, then move to GPU ──
-    torch.manual_seed(SEED)
-    m = FNO2dClassifier(
-        in_channels=IN_CHANNELS, hidden_channels=hid, n_modes=modes,
-        n_layers=layers, n_dir_classes=N_DIR_CLASSES,
-        n_int_classes=N_INT_CLASSES, env_dim=40, d1d_dim=4,
-        use_env=True, use_1d=True, dropout=dropout,
-    )  # stays on CPU
-    # Override head dimensions (still on CPU)
-    aux_dim = 40 + 4
-    head_in = hid + aux_dim
-    m.head_dir = nn.Sequential(
-        nn.Linear(head_in, head), nn.GELU(), nn.Dropout(dropout * 2),
-        nn.Linear(head, head // 2), nn.GELU(), nn.Dropout(dropout),
-        nn.Linear(head // 2, N_DIR_CLASSES),
-    )
-    m.head_int = nn.Sequential(
-        nn.Linear(head_in, head), nn.GELU(), nn.Dropout(dropout * 2),
-        nn.Linear(head, head // 2), nn.GELU(), nn.Dropout(dropout),
-        nn.Linear(head // 2, N_INT_CLASSES),
-    )
-
-    # Move to GPU — catch OOM here
-    try:
-        m = m.to(DEVICE)
-    except torch.cuda.OutOfMemoryError:
-        del m
-        _cleanup_gpu()
-        raise optuna.TrialPruned()
-
-    # ── Optimiser setup ──
-    if optim_name == "muon":
-        try:
-            from torch.optim import Muon
-            muon_params, adam_params = [], []
-            for name, p in m.named_parameters():
-                if not p.requires_grad:
-                    continue
-                if p.ndim >= 2 and "lifting" not in name and "head" not in name:
-                    muon_params.append(p)
-                else:
-                    adam_params.append(p)
-            opt = Muon(muon_params, lr=lr, momentum=0.95, nesterov=True,
-                       alternate_optimizer=torch.optim.AdamW(
-                           adam_params, lr=lr, weight_decay=wd))
-        except Exception:
-            opt = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=wd)
-    else:
-        opt = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=wd)
-
-    # ── Scheduler setup ──
-    if sched_name == "onecycle":
-        sched = torch.optim.lr_scheduler.OneCycleLR(
-            opt, max_lr=lr * 3, epochs=OPTUNA_EPOCHS,
-            steps_per_epoch=len(_loader_train))
-        step_per_batch = True
-    else:
-        sched = torch.optim.lr_scheduler.CosineAnnealingLR(
-            opt, T_max=OPTUNA_EPOCHS, eta_min=1e-6)
-        step_per_batch = False
-
-    # ── Loss ──
-    loss_d = nn.CrossEntropyLoss(weight=_dir_weights,
-                                  label_smoothing=label_smooth)
-    loss_i = nn.CrossEntropyLoss(weight=_int_weights,
-                                  label_smoothing=label_smooth)
-
-    # ── Training loop ──
-    best_val_acc = 0.0
-    patience_ctr = 0
-
-    try:
-        for epoch in range(1, OPTUNA_EPOCHS + 1):
-            m.train()
-            for grid, env, d1d, dl, il in _loader_train:
-                grid, env, d1d = grid.to(DEVICE), env.to(DEVICE), d1d.to(DEVICE)
-                dl, il = dl.to(DEVICE), il.to(DEVICE)
-
-                if aug_hflip and torch.rand(1).item() > 0.5:
-                    grid = grid.flip(-1)
-                if aug_vflip and torch.rand(1).item() > 0.5:
-                    grid = grid.flip(-2)
-
-                d_out, i_out = m(grid, env, d1d)
-                loss = dir_weight * loss_d(d_out, dl) + \
-                       (1 - dir_weight) * loss_i(i_out, il)
-
-                opt.zero_grad()
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
-                opt.step()
-                if step_per_batch:
-                    sched.step()
-
-            if not step_per_batch:
-                sched.step()
-
-            # ── Validation ──
-            m.eval()
-            preds, trues = [], []
-            with torch.no_grad():
-                for grid, env, d1d, dl, il in _loader_val:
-                    grid, env, d1d = grid.to(DEVICE), env.to(DEVICE), d1d.to(DEVICE)
-                    preds.extend(m(grid, env, d1d)[0].argmax(1).cpu().tolist())
-                    trues.extend(dl.tolist())
-            val_acc = accuracy_score(trues, preds)
-
-            trial.report(val_acc, epoch)
-            if trial.should_prune():
-                raise optuna.TrialPruned()
-
-            if val_acc > best_val_acc:
-                best_val_acc = val_acc
-                patience_ctr = 0
-            else:
-                patience_ctr += 1
-                if patience_ctr >= OPTUNA_PATIENCE:
-                    break
-    except torch.cuda.OutOfMemoryError:
-        raise optuna.TrialPruned()
-    finally:
-        # Move model to CPU before deleting to ensure GPU mem is freed
-        try:
-            m.cpu()
-        except Exception:
-            pass
-        del m, opt
-        _cleanup_gpu()
-
-    return best_val_acc
-
-
-# ── Run the study ──
-_cleanup_gpu()  # start clean
-study = optuna.create_study(
-    direction="maximize",
-    pruner=optuna.pruners.MedianPruner(n_startup_trials=10, n_warmup_steps=5),
-    study_name="fno_hpo",
-)
-study.optimize(objective, n_trials=N_TRIALS, catch=(Exception,),
-               show_progress_bar=True)
-
-print(f"\n{'='*60}")
-print(f" Optuna search complete — {len(study.trials)} trials")
-print(f"{'='*60}")
-completed = [t for t in study.trials if t.state == TrialState.COMPLETE]
-print(f" Completed: {len(completed)}, Pruned: {len(study.trials) - len(completed)}")
-print(f" Best val direction accuracy: {study.best_value:.4f}")
-print(f" Best hyperparameters:")
+study = _FakeStudy()
 for k, v in study.best_params.items():
     print(f"   {k:25s}: {v}")
 
-
-# In[10]:
-
-
-# ── Optuna results visualization ──
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# 1. Optimization history
-completed = [t for t in study.trials if t.state == TrialState.COMPLETE]
-vals = [t.value for t in completed]
-best_so_far = [max(vals[:i+1]) for i in range(len(vals))]
-axes[0].scatter(range(len(vals)), vals, alpha=0.4, s=20, label="Trial value")
-axes[0].plot(best_so_far, color="red", linewidth=2, label="Best so far")
-axes[0].set_xlabel("Trial"); axes[0].set_ylabel("Val Direction Accuracy")
-axes[0].set_title("Optimisation History"); axes[0].legend(); axes[0].grid(True, alpha=0.3)
-
-# 2. Hyperparameter importance (top 8)
-importances = optuna.importance.get_param_importances(study)
-top_params = list(importances.keys())[:8]
-top_vals = [importances[k] for k in top_params]
-axes[1].barh(top_params[::-1], top_vals[::-1], color="steelblue")
-axes[1].set_xlabel("Importance"); axes[1].set_title("Hyperparameter Importance")
-axes[1].grid(True, alpha=0.3, axis="x")
-
-plt.tight_layout()
-plt.savefig(PROJECT_ROOT / "figures" / "fno_optuna_results.png", dpi=150,
-            bbox_inches="tight")
-plt.show()
-
-# ── Top 5 trials ──
-print("\nTop 5 trials:")
-top5 = sorted(completed, key=lambda t: t.value, reverse=True)[:5]
-for t in top5:
-    p = t.params
-    print(f"  Trial {t.number:3d} │ acc={t.value:.4f} │ "
-          f"hid={p['hidden_channels']} modes={p['n_modes']} "
-          f"layers={p['n_layers']} lr={p['lr']:.4f} "
-          f"opt={p['optimizer']} sched={p['scheduler']}")
+# ── Optuna results (from prior search, figure already saved) ──
+fig_path = PROJECT_ROOT / "figures" / "fno_optuna_results.png"
+if fig_path.exists():
+    print(f"Optuna results: {fig_path}")
+else:
+    print("No Optuna figure found (using hardcoded params this run)")
 
 
 # In[11]:
