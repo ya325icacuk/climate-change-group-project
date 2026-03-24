@@ -1,0 +1,109 @@
+Device: cuda (NVIDIA GeForce RTX 5090)
+  wp_train       : 105 storms,  3716 timesteps
+  wp_val         :  26 storms,   846 timesteps
+  sp_test        :  15 storms,   427 timesteps
+  sp_ft_train    :  12 storms,   402 timesteps
+  sp_ft_val      :   3 storms,    93 timesteps
+  wp_train       :  3252 samples
+  wp_val         :   730 samples
+  sp_test        :   367 samples
+  sp_ft_train    :   354 samples
+  sp_ft_val      :    81 samples
+Dir weights: [ 1.865 14.017 22.583  6.556  0.443  0.409  0.768  0.836]
+Int weights: [0.545 4.212 0.723 1.831]
+U-Net+FiLM: 10,029,156 params
+Params/sample: 3,084
+Optimizer: AdamW (lr=0.0005, wd=0.0013)
+Scheduler: OneCycleLR (max_lr=0.0015)
+Ep   1/300 | T loss=2.0911 dir=0.081 int=0.337 | V loss=2.0741 dir=0.068 int=0.348 *
+Ep   5/300 | T loss=1.9374 dir=0.214 int=0.562 | V loss=2.0665 dir=0.060 int=0.319
+Ep  10/300 | T loss=1.8410 dir=0.208 int=0.477 | V loss=2.0464 dir=0.019 int=0.226
+Ep  14/300 | T loss=1.7624 dir=0.292 int=0.460 | V loss=2.0209 dir=0.082 int=0.203 *
+Ep  15/300 | T loss=1.7827 dir=0.288 int=0.486 | V loss=2.0123 dir=0.092 int=0.229 *
+Ep  16/300 | T loss=1.7455 dir=0.328 int=0.502 | V loss=2.0020 dir=0.108 int=0.260 *
+Ep  17/300 | T loss=1.7308 dir=0.399 int=0.483 | V loss=1.9907 dir=0.125 int=0.277 *
+Ep  18/300 | T loss=1.7170 dir=0.362 int=0.494 | V loss=1.9773 dir=0.171 int=0.319 *
+Ep  19/300 | T loss=1.6954 dir=0.401 int=0.530 | V loss=1.9624 dir=0.203 int=0.352 *
+Ep  20/300 | T loss=1.7126 dir=0.387 int=0.521 | V loss=1.9451 dir=0.236 int=0.388 *
+Ep  21/300 | T loss=1.7274 dir=0.386 int=0.500 | V loss=1.9270 dir=0.258 int=0.392 *
+Ep  22/300 | T loss=1.6810 dir=0.419 int=0.527 | V loss=1.9064 dir=0.295 int=0.414 *
+Ep  23/300 | T loss=1.6604 dir=0.463 int=0.531 | V loss=1.8860 dir=0.329 int=0.423 *
+Ep  24/300 | T loss=1.7178 dir=0.387 int=0.524 | V loss=1.8650 dir=0.355 int=0.437 *
+Ep  25/300 | T loss=1.6566 dir=0.470 int=0.543 | V loss=1.8427 dir=0.396 int=0.452 *
+Ep  26/300 | T loss=1.6544 dir=0.452 int=0.538 | V loss=1.8218 dir=0.449 int=0.464 *
+Ep  27/300 | T loss=1.6780 dir=0.415 int=0.567 | V loss=1.8004 dir=0.482 int=0.486 *
+Ep  28/300 | T loss=1.6856 dir=0.467 int=0.530 | V loss=1.7804 dir=0.508 int=0.496 *
+Ep  29/300 | T loss=1.6520 dir=0.445 int=0.572 | V loss=1.7599 dir=0.525 int=0.510 *
+Ep  30/300 | T loss=1.6303 dir=0.453 int=0.542 | V loss=1.7419 dir=0.537 int=0.511 *
+Ep  31/300 | T loss=1.6094 dir=0.454 int=0.560 | V loss=1.7235 dir=0.545 int=0.515 *
+Ep  32/300 | T loss=1.6208 dir=0.484 int=0.535 | V loss=1.7073 dir=0.562 int=0.516 *
+Ep  33/300 | T loss=1.6031 dir=0.500 int=0.552 | V loss=1.6952 dir=0.568 int=0.516 *
+Ep  35/300 | T loss=1.6199 dir=0.468 int=0.550 | V loss=1.6715 dir=0.560 int=0.519
+Ep  39/300 | T loss=1.5692 dir=0.462 int=0.544 | V loss=1.6384 dir=0.571 int=0.532 *
+Ep  40/300 | T loss=1.6119 dir=0.453 int=0.526 | V loss=1.6292 dir=0.567 int=0.540
+Ep  42/300 | T loss=1.5797 dir=0.487 int=0.548 | V loss=1.6193 dir=0.573 int=0.530 *
+Ep  43/300 | T loss=1.5600 dir=0.489 int=0.543 | V loss=1.6158 dir=0.574 int=0.526 *
+Ep  45/300 | T loss=1.5575 dir=0.524 int=0.576 | V loss=1.6084 dir=0.570 int=0.529
+Ep  49/300 | T loss=1.5435 dir=0.526 int=0.569 | V loss=1.6255 dir=0.575 int=0.511 *
+Ep  50/300 | T loss=1.4933 dir=0.535 int=0.564 | V loss=1.6206 dir=0.571 int=0.511
+Ep  52/300 | T loss=1.4744 dir=0.540 int=0.584 | V loss=1.6166 dir=0.577 int=0.508 *
+Ep  53/300 | T loss=1.5109 dir=0.524 int=0.575 | V loss=1.6165 dir=0.578 int=0.507 *
+Ep  55/300 | T loss=1.5182 dir=0.542 int=0.585 | V loss=1.6310 dir=0.579 int=0.507 *
+Ep  56/300 | T loss=1.5059 dir=0.535 int=0.563 | V loss=1.6376 dir=0.582 int=0.507 *
+Ep  60/300 | T loss=1.5751 dir=0.501 int=0.575 | V loss=1.6397 dir=0.577 int=0.511
+Ep  64/300 | T loss=1.4759 dir=0.575 int=0.589 | V loss=1.6374 dir=0.584 int=0.508 *
+Ep  65/300 | T loss=1.5036 dir=0.521 int=0.567 | V loss=1.6393 dir=0.585 int=0.515 *
+Ep  70/300 | T loss=1.4536 dir=0.534 int=0.577 | V loss=1.6295 dir=0.589 int=0.534 *
+Ep  72/300 | T loss=1.4240 dir=0.590 int=0.607 | V loss=1.6297 dir=0.597 int=0.534 *
+Ep  75/300 | T loss=1.4337 dir=0.603 int=0.629 | V loss=1.6356 dir=0.593 int=0.545
+Ep  76/300 | T loss=1.3874 dir=0.593 int=0.626 | V loss=1.6400 dir=0.599 int=0.541 *
+Ep  78/300 | T loss=1.4370 dir=0.543 int=0.600 | V loss=1.6505 dir=0.607 int=0.542 *
+Ep  80/300 | T loss=1.4665 dir=0.551 int=0.599 | V loss=1.6610 dir=0.601 int=0.540
+Ep  85/300 | T loss=1.4085 dir=0.570 int=0.608 | V loss=1.6711 dir=0.590 int=0.541
+Ep  90/300 | T loss=1.3338 dir=0.620 int=0.632 | V loss=1.6786 dir=0.603 int=0.547
+Ep  94/300 | T loss=1.2427 dir=0.653 int=0.674 | V loss=1.6828 dir=0.612 int=0.559 *
+Ep  95/300 | T loss=1.3248 dir=0.626 int=0.658 | V loss=1.6853 dir=0.615 int=0.560 *
+Ep  97/300 | T loss=1.3859 dir=0.576 int=0.630 | V loss=1.6866 dir=0.616 int=0.574 *
+Ep  98/300 | T loss=1.3943 dir=0.580 int=0.613 | V loss=1.6912 dir=0.618 int=0.570 *
+Ep  99/300 | T loss=1.3511 dir=0.584 int=0.622 | V loss=1.6920 dir=0.619 int=0.570 *
+Ep 100/300 | T loss=1.2856 dir=0.641 int=0.676 | V loss=1.6949 dir=0.623 int=0.570 *
+Ep 101/300 | T loss=1.2938 dir=0.615 int=0.649 | V loss=1.7043 dir=0.629 int=0.564 *
+Ep 105/300 | T loss=1.3380 dir=0.640 int=0.685 | V loss=1.7206 dir=0.622 int=0.573
+Ep 110/300 | T loss=1.3348 dir=0.603 int=0.654 | V loss=1.7330 dir=0.622 int=0.581
+Ep 115/300 | T loss=1.3234 dir=0.585 int=0.645 | V loss=1.7528 dir=0.619 int=0.584
+Ep 120/300 | T loss=1.2413 dir=0.642 int=0.686 | V loss=1.7469 dir=0.616 int=0.592
+Ep 125/300 | T loss=1.2213 dir=0.678 int=0.718 | V loss=1.7437 dir=0.610 int=0.597
+Ep 130/300 | T loss=1.2072 dir=0.687 int=0.728 | V loss=1.7420 dir=0.621 int=0.596
+Ep 135/300 | T loss=1.2100 dir=0.653 int=0.696 | V loss=1.7562 dir=0.616 int=0.603
+Ep 140/300 | T loss=1.2507 dir=0.622 int=0.697 | V loss=1.7386 dir=0.621 int=0.603
+Ep 145/300 | T loss=1.1992 dir=0.652 int=0.712 | V loss=1.7326 dir=0.627 int=0.601
+Ep 150/300 | T loss=1.1670 dir=0.698 int=0.751 | V loss=1.7383 dir=0.612 int=0.610
+
+Early stopping at epoch 151
+
+Best val dir acc: 0.6288
+WP Val — dir=0.629 F1=0.465 | int=0.564 F1=0.471
+SP Zero-Shot — dir=0.390 F1=0.261 | int=0.362
+Transfer gap (dir): -0.239
+Full fine-tuning:
+  FT  10/80 | dir=0.395 int=0.654
+  Early stop at ep 17
+  Best: 0.457
+Head-only:
+  FT  10/80 | dir=0.321 int=0.617
+  Early stop at ep 16
+  Best: 0.333
+SP Fine-Tuned — dir=0.390 F1=0.273 | int=0.392
+
+================================================================================
+ U-Net + FiLM — Final Results
+================================================================================
+Setting              |  Dir Acc |  Dir F1 |  Int Acc |  Int F1
+--------------------------------------------------------------------------------
+WP Val               |   62.9% |  46.5% |   56.4% |  47.1%
+SP Zero-Shot         |   39.0% |  26.1% |   36.2% |  30.1%
+SP Fine-Tuned        |   39.0% |  27.3% |   39.2% |  33.1%
+================================================================================
+Parameters: 10,029,156
+Transfer gap (dir): -0.239
+FT recovery (dir):  +0.000

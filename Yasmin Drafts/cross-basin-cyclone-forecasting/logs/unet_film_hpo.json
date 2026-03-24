@@ -1,0 +1,16 @@
+{
+  "model": "unet_film",
+  "best_value": 0.6136986301369863,
+  "best_params": {
+    "base_ch": 48,
+    "n_levels": 3,
+    "dropout": 0.20688136364427034,
+    "head_dim": 512,
+    "time_emb": 64,
+    "lr": 0.00025909503546786805,
+    "weight_decay": 0.003422722843550638,
+    "dir_weight": 0.5413889934315769,
+    "batch_size": 32
+  },
+  "n_trials": 20
+}

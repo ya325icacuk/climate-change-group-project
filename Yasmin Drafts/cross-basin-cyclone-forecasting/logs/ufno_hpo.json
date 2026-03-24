@@ -1,0 +1,16 @@
+{
+  "model": "ufno",
+  "best_value": 0.6315068493150685,
+  "best_params": {
+    "hidden": 48,
+    "modes": 16,
+    "n_layers": 2,
+    "padding": 13,
+    "dropout": 0.1136916764649249,
+    "lr": 0.0002794615145845253,
+    "weight_decay": 0.0008720741844939034,
+    "dir_weight": 0.5561882509132673,
+    "batch_size": 64
+  },
+  "n_trials": 20
+}

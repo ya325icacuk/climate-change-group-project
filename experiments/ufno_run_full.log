@@ -1,0 +1,66 @@
+Device: cuda
+  wp_train       :  3252
+  wp_val         :   730
+  sp_test        :   367
+  sp_ft_train    :   354
+  sp_ft_val      :    81
+Dir: [ 1.865 14.017 22.583  6.556  0.443  0.409  0.768  0.836]
+Int: [0.545 4.212 0.723 1.831]
+U-FNO: 1,018,165 params
+Output: dir=torch.Size([2, 8]), int=torch.Size([2, 4])
+Ep   1/150 | T loss=1.9827 dir=0.077 int=0.392 | V loss=1.9413 dir=0.059 int=0.473 *
+Ep   2/150 | T loss=1.8229 dir=0.195 int=0.564 | V loss=1.7706 dir=0.104 int=0.504 *
+Ep   3/150 | T loss=1.6973 dir=0.322 int=0.555 | V loss=1.7263 dir=0.438 int=0.558 *
+Ep   4/150 | T loss=1.6117 dir=0.415 int=0.599 | V loss=1.6314 dir=0.473 int=0.564 *
+Ep   5/150 | T loss=1.5665 dir=0.476 int=0.593 | V loss=1.6298 dir=0.514 int=0.560 *
+Ep   6/150 | T loss=1.5375 dir=0.493 int=0.615 | V loss=1.6135 dir=0.533 int=0.549 *
+Ep   9/150 | T loss=1.4634 dir=0.570 int=0.628 | V loss=1.5682 dir=0.527 int=0.593 *
+Ep  10/150 | T loss=1.4167 dir=0.585 int=0.629 | V loss=1.6229 dir=0.511 int=0.604
+Ep  11/150 | T loss=1.3996 dir=0.601 int=0.640 | V loss=1.5597 dir=0.508 int=0.625 *
+Ep  15/150 | T loss=1.2963 dir=0.671 int=0.688 | V loss=1.6400 dir=0.555 int=0.595
+Ep  20/150 | T loss=1.1470 dir=0.732 int=0.753 | V loss=1.6107 dir=0.544 int=0.564
+Ep  25/150 | T loss=1.0265 dir=0.783 int=0.826 | V loss=1.7200 dir=0.588 int=0.542
+Ep  30/150 | T loss=0.9252 dir=0.840 int=0.898 | V loss=1.7423 dir=0.600 int=0.552
+Ep  35/150 | T loss=0.8608 dir=0.878 int=0.927 | V loss=1.8129 dir=0.573 int=0.590
+Ep  40/150 | T loss=0.7832 dir=0.918 int=0.959 | V loss=1.8050 dir=0.595 int=0.622
+
+Early stop at ep 41
+
+Best val loss: 1.5597, dir acc: 0.6000
+WP Val — dir=0.508 F1=0.401 | int=0.625
+SP Zero-Shot — dir=0.202 | int=0.433
+Transfer gap (dir): -0.307
+Full FT:
+  FT  10 | dir=0.247 int=0.617
+  FT  20 | dir=0.296 int=0.605
+  FT  30 | dir=0.358 int=0.568
+  FT  40 | dir=0.358 int=0.568
+  Stop at 45
+  Best: 0.358
+Head FT:
+  FT  10 | dir=0.210 int=0.642
+  Stop at 17
+  Best: 0.235
+SP Fine-Tuned — dir=0.283 F1=0.222 | int=0.496
+Checkpoints saved.
+Layer 1: Spectral=0.404, U-Net=0.266, Residual=0.330
+Layer 2: Spectral=0.400, U-Net=0.297, Residual=0.302
+Layer 3: Spectral=0.377, U-Net=0.313, Residual=0.310
+
+================================================================================
+ U-FNO — Final Results
+================================================================================
+Setting              |  Dir Acc |  Dir F1 |  Int Acc |  Int F1
+--------------------------------------------------------------------------------
+WP Val               |   50.8% |  40.1% |   62.5% |  49.9%
+SP Zero-Shot         |   20.2% |  16.8% |   43.3% |  40.3%
+SP Fine-Tuned        |   28.3% |  22.2% |   49.6% |  39.5%
+================================================================================
+Parameters: 1,018,165
+Transfer gap (dir): -0.307
+FT recovery (dir):  +0.082
+
+Gate summary:
+  Layer 1: Spectral=0.40 U-Net=0.27 Residual=0.33
+  Layer 2: Spectral=0.40 U-Net=0.30 Residual=0.30
+  Layer 3: Spectral=0.38 U-Net=0.31 Residual=0.31

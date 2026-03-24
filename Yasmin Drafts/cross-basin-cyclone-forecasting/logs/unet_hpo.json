@@ -1,0 +1,16 @@
+{
+  "model": "unet",
+  "best_value": 0.6136986301369863,
+  "best_params": {
+    "base_ch": 32,
+    "n_levels": 5,
+    "dropout": 0.1176985004103839,
+    "head_dim": 256,
+    "drop_path": 0.06506606615265287,
+    "lr": 0.00024472440973990144,
+    "weight_decay": 0.0009339401285535342,
+    "dir_weight": 0.5743106263727894,
+    "batch_size": 32
+  },
+  "n_trials": 20
+}

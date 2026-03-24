@@ -1,0 +1,56 @@
+
+============================================================
+ HPO: ufno (20 trials x 50 epochs)
+============================================================
+  0%|          | 0/20 [00:00<?, ?it/s]Best trial: 0. Best value: 0.619178:   0%|          | 0/20 [02:32<?, ?it/s]Best trial: 0. Best value: 0.619178:   5%|▌         | 1/20 [02:32<48:20, 152.64s/it]  Ep   1/50 | loss=1.9995 | val dir=0.330 int=0.278 *
+  Ep   5/50 | loss=1.7213 | val dir=0.384 int=0.612 *
+  Ep   6/50 | loss=1.6653 | val dir=0.467 int=0.519 *
+  Ep   7/50 | loss=1.6078 | val dir=0.516 int=0.496 *
+  Ep   9/50 | loss=1.5631 | val dir=0.540 int=0.566 *
+  Ep  10/50 | loss=1.5504 | val dir=0.533 int=0.616
+  Ep  15/50 | loss=1.3981 | val dir=0.573 int=0.615 *
+  Ep  16/50 | loss=1.3682 | val dir=0.592 int=0.611 *
+  Ep  19/50 | loss=1.2601 | val dir=0.593 int=0.593 *
+  Ep  20/50 | loss=1.2391 | val dir=0.568 int=0.544
+  Ep  22/50 | loss=1.1709 | val dir=0.612 int=0.582 *
+  Ep  25/50 | loss=1.0800 | val dir=0.619 int=0.604 *
+  Ep  30/50 | loss=0.9637 | val dir=0.585 int=0.621
+  Early stop at ep 37
+Best trial: 0. Best value: 0.619178:   5%|▌         | 1/20 [06:11<48:20, 152.64s/it]Best trial: 0. Best value: 0.619178:  10%|█         | 2/20 [06:11<57:27, 191.50s/it]  Ep   1/50 | loss=2.0536 | val dir=0.174 int=0.125 *
+  Ep   2/50 | loss=2.0544 | val dir=0.177 int=0.123 *
+  Ep   4/50 | loss=2.0353 | val dir=0.181 int=0.155 *
+  Ep   8/50 | loss=1.8074 | val dir=0.256 int=0.521 *
+  Ep   9/50 | loss=1.7549 | val dir=0.293 int=0.522 *
+  Ep  10/50 | loss=1.7008 | val dir=0.289 int=0.500
+  Ep  11/50 | loss=1.6580 | val dir=0.423 int=0.584 *
+  Ep  12/50 | loss=1.6440 | val dir=0.456 int=0.578 *
+  Ep  13/50 | loss=1.6197 | val dir=0.470 int=0.556 *
+  Ep  15/50 | loss=1.5808 | val dir=0.501 int=0.597 *
+  Ep  18/50 | loss=1.5113 | val dir=0.507 int=0.562 *
+  Ep  19/50 | loss=1.5146 | val dir=0.514 int=0.593 *
+  Ep  20/50 | loss=1.4999 | val dir=0.529 int=0.582 *
+  Ep  21/50 | loss=1.5033 | val dir=0.548 int=0.582 *
+  Ep  23/50 | loss=1.4652 | val dir=0.560 int=0.603 *
+  Ep  30/50 | loss=1.4030 | val dir=0.566 int=0.573 *
+  Ep  34/50 | loss=1.3601 | val dir=0.573 int=0.566 *
+  Ep  37/50 | loss=1.3548 | val dir=0.577 int=0.581 *
+  Ep  39/50 | loss=1.3276 | val dir=0.593 int=0.575 *
+  Ep  40/50 | loss=1.3368 | val dir=0.568 int=0.579
+  Ep  42/50 | loss=1.3053 | val dir=0.596 int=0.593 *
+  Ep  45/50 | loss=1.3127 | val dir=0.601 int=0.586 *
+  Ep  50/50 | loss=1.3030 | val dir=0.586 int=0.588
+Best trial: 2. Best value: 0.638356:  10%|█         | 2/20 [10:33<57:27, 191.50s/it]Best trial: 2. Best value: 0.638356:  15%|█▌        | 3/20 [10:33<1:03:24, 223.79s/it]  Ep   1/50 | loss=2.0253 | val dir=0.101 int=0.347 *
+  Ep   4/50 | loss=1.7868 | val dir=0.227 int=0.496 *
+  Ep   5/50 | loss=1.7137 | val dir=0.384 int=0.515 *
+  Ep   6/50 | loss=1.6297 | val dir=0.452 int=0.523 *
+  Ep   7/50 | loss=1.5747 | val dir=0.478 int=0.568 *
+  Ep   8/50 | loss=1.5728 | val dir=0.536 int=0.619 *
+  Ep  10/50 | loss=1.4895 | val dir=0.484 int=0.538
+  Ep  11/50 | loss=1.4328 | val dir=0.582 int=0.482 *
+  Ep  13/50 | loss=1.3835 | val dir=0.592 int=0.616 *
+  Ep  14/50 | loss=1.3323 | val dir=0.615 int=0.538 *
+  Ep  19/50 | loss=1.0733 | val dir=0.629 int=0.538 *
+  Ep  20/50 | loss=1.0245 | val dir=0.629 int=0.592
+  Ep  21/50 | loss=1.0095 | val dir=0.638 int=0.564 *
+  Ep  30/50 | loss=0.8058 | val dir=0.597 int=0.616
+  Early stop at ep 33

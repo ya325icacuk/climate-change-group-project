@@ -1,0 +1,16 @@
+{
+  "model": "fno_v2",
+  "best_value": 0.6191780821917808,
+  "best_params": {
+    "hidden": 48,
+    "modes": 20,
+    "n_layers": 5,
+    "padding": 9,
+    "time_emb": 64,
+    "lr": 0.0001756662347361089,
+    "weight_decay": 0.002174446913795173,
+    "dir_weight": 0.5062233987911043,
+    "batch_size": 64
+  },
+  "n_trials": 20
+}

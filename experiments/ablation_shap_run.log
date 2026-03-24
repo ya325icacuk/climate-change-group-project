@@ -1,0 +1,116 @@
+Device: cuda
+Grid groups: ['SST', 'u_wind', 'v_wind', 'geopotential', 'wind_shear', 'vorticity']
+Env groups:  ['wind', 'move_velocity', 'intensity_class', 'month', 'history_dir_12h', 'history_dir_24h', 'history_int_24h']
+  wp_train       :  3252 samples
+  wp_val         :   730 samples
+U-Net loaded: 9,833,188 parameters
+Baseline (WP val, all features):
+  dir_acc: 0.6247
+  dir_f1: 0.4466
+  int_acc: 0.5096
+  int_f1: 0.4329
+  Drop SST             | dir_acc: 0.6288 (drop -0.0041) | int_acc: 0.4616 (drop +0.0479)
+  Drop u_wind          | dir_acc: 0.4493 (drop +0.1753) | int_acc: 0.5205 (drop -0.0110)
+  Drop v_wind          | dir_acc: 0.5082 (drop +0.1164) | int_acc: 0.4671 (drop +0.0425)
+  Drop geopotential    | dir_acc: 0.6301 (drop -0.0055) | int_acc: 0.5192 (drop -0.0096)
+  Drop wind_shear      | dir_acc: 0.6151 (drop +0.0096) | int_acc: 0.4753 (drop +0.0342)
+  Drop vorticity       | dir_acc: 0.6219 (drop +0.0027) | int_acc: 0.5233 (drop -0.0137)
+  Drop wind               | dir_acc: 0.6247 (drop +0.0000) | int_acc: 0.4959 (drop +0.0137)
+  Drop move_velocity      | dir_acc: 0.6219 (drop +0.0027) | int_acc: 0.5164 (drop -0.0068)
+  Drop intensity_class    | dir_acc: 0.6288 (drop -0.0041) | int_acc: 0.4603 (drop +0.0493)
+  Drop month              | dir_acc: 0.6274 (drop -0.0027) | int_acc: 0.4973 (drop +0.0123)
+  Drop history_dir_12h    | dir_acc: 0.6164 (drop +0.0082) | int_acc: 0.5082 (drop +0.0014)
+  Drop history_dir_24h    | dir_acc: 0.6315 (drop -0.0068) | int_acc: 0.4836 (drop +0.0260)
+  Drop history_int_24h    | dir_acc: 0.6315 (drop -0.0068) | int_acc: 0.4904 (drop +0.0192)
+Config          |  Dir Acc |    Drop |  Int Acc |    Drop
+------------------------------------------------------------
+Baseline        |   0.6247 |    --   |   0.5096 |    --  
+No Grid         |   0.3151 | +0.3096 |   0.3836 | +0.1260
+No Env          |   0.6192 | +0.0055 |   0.3904 | +0.1192
+No 1D           |   0.6260 | -0.0014 |   0.5219 | -0.0123
+Only Grid       |   0.6219 | +0.0027 |   0.3712 | +0.1384
+Only Env        |   0.3164 | +0.3082 |   0.3890 | +0.1205
+Only 1D         |   0.2932 | +0.3315 |   0.2685 | +0.2411
+All zeroed:  dir_acc=0.2808  int_acc=0.0548
+
+  Add SST             | dir_acc: 0.3137 (gain +0.0329)
+  Add u_wind          | dir_acc: 0.4836 (gain +0.2027)
+  Add v_wind          | dir_acc: 0.2986 (gain +0.0178)
+  Add geopotential    | dir_acc: 0.3356 (gain +0.0548)
+  Add wind_shear      | dir_acc: 0.3466 (gain +0.0658)
+  Add vorticity       | dir_acc: 0.2589 (gain -0.0219)
+
+  Add wind               | dir_acc: 0.2808 (gain +0.0000)
+  Add move_velocity      | dir_acc: 0.2808 (gain +0.0000)
+  Add intensity_class    | dir_acc: 0.2808 (gain +0.0000)
+  Add month              | dir_acc: 0.2808 (gain +0.0000)
+  Add history_dir_12h    | dir_acc: 0.2795 (gain -0.0014)
+  Add history_dir_24h    | dir_acc: 0.2781 (gain -0.0027)
+  Add history_int_24h    | dir_acc: 0.2808 (gain +0.0000)
+Val samples: 730
+Mean grid shape: torch.Size([1, 15, 81, 81]), Mean d1d shape: torch.Size([1, 4])
+EnvWrapper output shape: torch.Size([2, 8])
+SHAP raw shape: (200, 40, 8)
+SHAP avg shape: (200, 40)
+Per-channel gradient importance:
+  SST         : 0.000083
+  u_200       : 0.000109
+  u_500       : 0.000159
+  u_850       : 0.000094
+  u_925       : 0.000066
+  v_200       : 0.000097
+  v_500       : 0.000184
+  v_850       : 0.000125
+  v_925       : 0.000073
+  z_200       : 0.000050
+  z_500       : 0.000051
+  z_850       : 0.000036
+  z_925       : 0.000042
+  wind_shear  : 0.000083
+  vorticity   : 0.000083
+================================================================================
+ ABLATION STUDY SUMMARY
+================================================================================
+
+--- Grid Channel Group Ablation (Leave-One-Out) ---
+Group           |  Dir Acc |  Dir Drop |  Int Acc |  Int Drop
+------------------------------------------------------------
+SST             |   0.6288 |   -0.0041 |   0.4616 |   +0.0479
+u_wind          |   0.4493 |   +0.1753 |   0.5205 |   -0.0110
+v_wind          |   0.5082 |   +0.1164 |   0.4671 |   +0.0425
+geopotential    |   0.6301 |   -0.0055 |   0.5192 |   -0.0096
+wind_shear      |   0.6151 |   +0.0096 |   0.4753 |   +0.0342
+vorticity       |   0.6219 |   +0.0027 |   0.5233 |   -0.0137
+
+--- Env Feature Group Ablation (Leave-One-Out) ---
+Group              |  Dir Acc |  Dir Drop |  Int Acc |  Int Drop
+-----------------------------------------------------------------
+wind               |   0.6247 |   +0.0000 |   0.4959 |   +0.0137
+move_velocity      |   0.6219 |   +0.0027 |   0.5164 |   -0.0068
+intensity_class    |   0.6288 |   -0.0041 |   0.4603 |   +0.0493
+month              |   0.6274 |   -0.0027 |   0.4973 |   +0.0123
+history_dir_12h    |   0.6164 |   +0.0082 |   0.5082 |   +0.0014
+history_dir_24h    |   0.6315 |   -0.0068 |   0.4836 |   +0.0260
+history_int_24h    |   0.6315 |   -0.0068 |   0.4904 |   +0.0192
+
+--- Modality Ablation ---
+Config          |  Dir Acc |  Dir Drop |  Int Acc |  Int Drop
+------------------------------------------------------------
+Baseline        |   0.6247 |       --  |   0.5096 |       --
+No Grid         |   0.3151 |   +0.3096 |   0.3836 |   +0.1260
+No Env          |   0.6192 |   +0.0055 |   0.3904 |   +0.1192
+No 1D           |   0.6260 |   -0.0014 |   0.5219 |   -0.0123
+Only Grid       |   0.6219 |   +0.0027 |   0.3712 |   +0.1384
+Only Env        |   0.3164 |   +0.3082 |   0.3890 |   +0.1205
+Only 1D         |   0.2932 |   +0.3315 |   0.2685 |   +0.2411
+
+Figures saved:
+  ablation_add_one_in.png
+  ablation_env_groups.png
+  ablation_grid_groups.png
+  ablation_modality.png
+  ablation_vs_attribution.png
+  shap_env_beeswarm.png
+  shap_env_group_bar.png
+  shap_grid_channel_importance.png
+  shap_grid_group_importance.png
