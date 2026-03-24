@@ -6,30 +6,6 @@
 
 ---
 
-## The Quest
-
-We set out to find the best deep learning architecture for predicting tropical cyclone direction and intensity changes across ocean basins. Our battlefield: the TropiCycloneNet dataset — Western Pacific storms training our models, South Pacific storms testing their generalization.
-
-Eight architectures entered the arena. Each faced a rigorous Optuna hyperparameter search, then endured the full 300-epoch gauntlet with their optimal configurations.
-
-**The arena:** NVIDIA RTX 5090 (32GB VRAM).
-**The dataset:** 3,252 WP training samples (105 storms), 730 WP validation (26 storms), 367 SP test (15 storms). A brutally data-limited regime.
-
-### The Contestants
-
-| Model | Philosophy | HPO Range | Final Params |
-|-------|-----------|-----------|-------------|
-| **U-Net** | Spatial hierarchy + SE attention + skip connections | 9.8M–39M | 39.1M |
-| **U-Net + FiLM** | U-Net + temporal awareness via Feature-wise Linear Modulation | 5.9M–36M | 5.9M |
-| **FNO** | Global patterns via Fourier spectral convolutions | 1.2M–15M | 7.4M |
-| **FNO v2** | FNO + reflect padding + FiLM + tuned depth | 0.9M–12M | 9.3M |
-| **U-FNO** | Hybrid: spectral + spatial + residual with gated fusion | 1.0M–10M | 2.5M |
-| **ResNet-152** | Deep CNN feature extraction (torchvision backbone) | — | 58.7M |
-| **PI-GAN** | Physics-informed GAN: U-Net+FiLM generator + adversarial physics loss | 8M–12M | 10.0M |
-| **SCANet** | Spectral cross-attention + depthwise-sep local + physics aux loss | 2M–6M | 3.7M |
-
----
-
 ## Phase 0 — Problem Definition & Literature Review (March 10–11)
 
 ### What we did
@@ -265,7 +241,7 @@ Physics-Informed GAN with the U-Net+FiLM as generator:
 
 ### What we did
 
-All models underwent Optuna HPO (20 trials × 50 epochs each for the main 6, 60 trials for SCANet), running in parallel on an NVIDIA RTX 5090 (32GB VRAM).
+All five main models underwent Optuna HPO (20 trials × 50 epochs each), running in parallel on an NVIDIA RTX 5090 (32GB VRAM).
 
 ### Search spaces
 
@@ -274,20 +250,18 @@ All models underwent Optuna HPO (20 trials × 50 epochs each for the main 6, 60 
 | U-Net / U-Net+FiLM | base_ch ∈ {32, 48, 64}, n_levels ∈ {3,4,5}, head_dim ∈ {256, 512} |
 | FNO / FNO v2 / U-FNO | hidden ∈ {48, 64, 96}, modes ∈ {12..20}, n_layers ∈ {2..6} |
 | PI-GAN | base_ch ∈ {24, 32, 48}, n_levels ∈ {3,4,5}, head_dim ∈ {128, 256, 512} |
-| SCANet | hidden_ch ∈ {48..96}, n_modes ∈ {8..20}, n_blocks ∈ {2..4}, context_dim ∈ {32..96}, head_dim ∈ {64..256}, lambda_phys ∈ [0.01, 0.3] |
 | All | lr ∈ [1e-4, 1e-3], weight_decay ∈ [5e-4, 5e-3], dir_weight ∈ [0.45, 0.6] |
 
 ### HPO results (best direction accuracy on WP val during 50-epoch trials)
 
-| Model | Best HPO Acc | Key Config Found | Final Params | HPO Time |
-|-------|-------------|-----------------|-------------|----------|
-| **U-FNO** | **63.2%** | hidden=48, modes=16, 2 layers, padding=13 | 2.5M | 3h 0m |
-| FNO v2 | 61.9% | hidden=48, modes=20, 5 layers, padding=9 | 9.3M | 2h 16m |
-| U-Net | 61.4% | base_ch=32, 5 levels, head_dim=256 | 39.1M | 2h 54m |
-| U-Net+FiLM | 61.4% | base_ch=48, 3 levels, time_emb=64 | 5.9M | 3h 0m |
-| FNO | 60.7% | hidden=64, modes=15, 4 layers | 7.4M | 2h 3m |
-| PI-GAN | 58.9% | base_ch=32, 3 levels, head_dim=256 | 10.0M | 3h 30m |
-| SCANet | 56.4% | hidden=64, n_modes=12, 3 blocks, context=32, head=192, λ_phys=0.087 | 3.7M | 5h 10m |
+| Model | Best HPO Acc | Key Config Found | Final Params |
+|-------|-------------|-----------------|-------------|
+| **U-FNO** | **63.2%** | hidden=48, modes=16, 2 layers, padding=13 | 2.5M |
+| FNO v2 | 61.9% | hidden=48, modes=20, 5 layers, padding=9 | 9.3M |
+| U-Net | 61.4% | base_ch=32, 5 levels, head_dim=256 | 39.1M |
+| U-Net+FiLM | 61.4% | base_ch=48, 3 levels, time_emb=64 | 5.9M |
+| FNO | 60.7% | hidden=64, modes=15, 4 layers | 7.4M |
+| PI-GAN | 58.9% | base_ch=32, 3 levels, head_dim=256 | 10.0M |
 
 ### HPO discoveries
 
@@ -303,8 +277,6 @@ All models underwent Optuna HPO (20 trials × 50 epochs each for the main 6, 60 
 
 6. **PI-GAN's adversarial training is unstable** — the GAN discriminator makes HPO unreliable; trial variance is high. The physics idea is sound but the training method hurts convergence. This observation directly motivated SCANet's design (Phase 5).
 
-7. **SCANet needs 60 trials to shine** — with 13 hyperparameters (including physics loss weight, context dim, scheduler choice), the search space is larger. Optuna found that a small context_dim (32) with large head_dim (192) and OneCycleLR scheduler works best. The HPO val accuracy (56.4%) understates its true strength — the architecture's advantage is in *transfer*, not in-basin.
-
 ### Conclusion
 
 Architecture choice (and the inductive biases it encodes) matters far more than hyperparameter tuning in the data-limited regime. The right structure (gated spectral-spatial fusion, temporal conditioning) outweighs the right learning rate.
@@ -319,15 +291,11 @@ Each model trained with its best HPO configuration for up to 300 epochs, with th
 
 Fine-tuning on SP used the same two-phase strategy across all models: head-only warmup followed by selective backbone unfreezing with conservative learning rates.
 
-### The PI-GAN lesson
+### Intermediate results — 7 models (before SCANet)
 
-Training the first 7 models revealed a critical insight: **PI-GAN's physics losses improved zero-shot transfer (36.2% dir) over the non-physics U-Net+FiLM (32.4%), but the adversarial training was unstable** — HPO trial variance was high, fine-tuning collapsed (-9.8pp), and at 10.0M parameters the GAN framework was overkill for a classification task.
+Training the first 7 models revealed a critical insight: **PI-GAN's physics losses improved zero-shot transfer (36.2% dir) over the non-physics U-Net+FiLM (32.4%), but the adversarial training was unstable** — HPO trial variance was high, fine-tuning collapsed (-9.8pp), and at 10.0M parameters the GAN framework was overkill for a classification task. The physics idea was sound, but the delivery mechanism was wrong.
 
-**What worked:** The physics loss acts as a regularizer, improving zero-shot transfer over the non-physics U-Net+FiLM. The model learns physically meaningful features.
-
-**What didn't:** The adversarial training introduces mode collapse risk. At 10M parameters, it's heavy for what it delivers. The GAN framework is overkill for a classification task.
-
-**Key insight:** Physics-informed losses are valuable, but the *delivery mechanism* (GAN vs auxiliary supervised loss) matters enormously for training stability. This directly motivated the design of SCANet.
+This directly motivated the design of **SCANet** — could we get the physics regularisation benefit of PI-GAN without the adversarial instability?
 
 ### Architecture 8: SCANet — Spectral Cross-Attention Network (3.7M params)
 
@@ -359,7 +327,7 @@ SCANet required a larger search due to its 13-dimensional hyperparameter space (
 
 60 trials launched, 30 completed, 30 pruned. Best HPO val accuracy: **59.4%** (direction). Key finding: small context_dim (32) with large head_dim (192) works best — the context vector should be compact but the classification heads need capacity.
 
-#### SCANet gate weight analysis
+#### Gate weight analysis
 
 The learned spectral vs local branch weights reveal:
 
@@ -377,62 +345,63 @@ The spectral branch dominates in all layers (53–56%), but the local branch con
 
 | Model | Params | Dir Acc | Dir F1 | Int Acc | Int F1 | Epochs |
 |-------|-------:|--------:|-------:|--------:|-------:|-------:|
-| PI-GAN | 10.0M | **57.0%** | **39.1%** | 56.3% | 44.6% | 300 |
+| **U-Net** | 39.1M | **60.0%** | **41.9%** | 58.9% | 47.9% | 134 |
+| PI-GAN | 10.0M | 57.0% | 39.1% | 56.3% | 44.6% | 300 |
 | **SCANet** | 3.7M | 56.4% | 34.7% | **66.2%** | 42.7% | 185 |
-| U-Net+FiLM | 10.0M | 56.3% | 37.1% | 58.5% | 46.3% | 189 |
-| **U-Net** | 9.8M | 55.9% | 34.1% | 54.2% | 44.8% | 155 |
+| U-Net+FiLM | 5.9M | 56.4% | 40.4% | 57.4% | 47.2% | 120 |
+| **U-FNO** | 2.5M | 55.7% | 40.4% | 63.0% | **49.3%** | 100 |
 | ResNet-152 | 58.7M | 49.9% | 37.2% | 61.1% | 50.1% | 31 |
-| **U-FNO** | 1.0M | 47.9% | 38.0% | 60.0% | **50.1%** | 66 |
-| FNO | 10.3M | 47.5% | 32.3% | 60.6% | 44.8% | 53 |
-| FNO v2 | 9.3M | 46.9% | 31.2% | 58.7% | 46.0% | 59 |
+| FNO v2 | 9.3M | 36.6% | 12.4% | 44.5% | 23.7% | 135 |
+| FNO | 7.4M | 36.4% | 14.0% | 41.7% | 34.1% | 114 |
 
 **Key observations:**
-- PI-GAN leads in-basin direction (57.0%), closely followed by SCANet (56.4%) and U-Net+FiLM (56.3%). The top four models are within 1.1pp on direction.
-- **SCANet achieves the best intensity accuracy (66.2%)** — its cross-attention mechanism captures intensity-relevant patterns that other architectures miss.
-- The spectral models (FNO, FNO v2, U-FNO) all achieve strong intensity accuracy (58.7–60.6%), confirming that spectral convolutions excel at capturing the global thermodynamic patterns that drive intensity change.
-- U-FNO achieves 60.0% intensity with only 1.0M params — 10× smaller than U-Net. The gated spectral-spatial fusion provides excellent parameter efficiency.
-- FNO overfits severely (stopped at epoch 53/300) despite 10.3M parameters — spectral convolutions lack the inductive biases that regularise U-Net.
+- U-Net remains the in-basin direction champion (60.0%).
+- **SCANet achieves the best intensity accuracy (66.2%)** despite modest in-basin direction (56.4%) — its cross-attention mechanism captures intensity-relevant patterns differently. This hints at its real strength: transfer.
+- U-FNO achieves 63.0% intensity with only 2.5M params — 16× smaller than U-Net.
+- PI-GAN performs respectably in-basin (57.0% dir) despite the added complexity of adversarial training, but is beaten by SCANet which uses the same physics losses without the GAN.
+- FNO and FNO v2 underperform on direction with these checkpoints, though FNO v2's padding and FiLM help on intensity relative to baseline FNO.
 
 #### Zero-Shot Cross-Basin Transfer (WP → SP)
 
 | Model | Dir Acc | Dir F1 | Int Acc | Int F1 | Dir Gap |
 |-------|--------:|-------:|--------:|-------:|--------:|
 | **SCANet** | **43.3%** | **27.1%** | 36.8% | 21.8% | **-13.1pp** |
-| U-Net | 36.8% | 24.2% | **45.8%** | **36.8%** | -19.1pp |
 | PI-GAN | 36.2% | 24.3% | 38.1% | 29.1% | -20.8pp |
-| FNO | 34.3% | 25.7% | 39.8% | 33.3% | -13.2pp |
-| U-Net+FiLM | 33.8% | 23.4% | 39.5% | 28.3% | -22.5pp |
-| U-FNO | 32.2% | 23.9% | 42.5% | 28.0% | -15.7pp |
-| FNO v2 | 26.2% | 18.0% | 43.6% | 32.8% | -20.8pp |
+| U-FNO | 34.6% | 27.9% | **48.0%** | **31.0%** | -21.1pp |
+| U-Net+FiLM | 32.4% | 27.4% | 40.9% | 33.5% | -24.0pp |
+| U-Net | 27.0% | 19.1% | 31.3% | 20.7% | -33.0pp |
 | ResNet-152 | 25.9% | 21.1% | 32.2% | 24.2% | -24.0pp |
+| FNO | 22.1% | 12.5% | 27.0% | 18.6% | -14.4pp |
+| FNO v2 | 17.2% | 4.7% | 39.8% | 19.8% | -19.5pp |
 
 **Key observations:**
-- **SCANet remains the zero-shot transfer champion** with 43.3% direction accuracy — a +6.5pp lead over U-Net (36.8%) and +7.1pp over PI-GAN (36.2%). Its transfer gap of just **-13.1pp** is the smallest.
-- **U-Net's zero-shot transfer improved dramatically** (36.8% vs 27.0% in previous runs), now competitive with PI-GAN. Its augmentation suite (Mixup, CutOut, EMA) helps learn more generalisable features.
-- **FNO achieves the second-smallest transfer gap** (-13.2pp), nearly matching SCANet. Despite severe in-basin overfitting, the spectral representations that survive are surprisingly transferable.
-- **U-Net leads zero-shot intensity transfer** (45.8%), surpassing U-FNO (42.5%) and FNO v2 (43.6%) — the skip connections help preserve fine-grained intensity-relevant patterns.
-- The three synergistic effects behind SCANet's transfer dominance: (1) cross-attention learns spatially-varying modulation that transfers across basins; (2) early context fusion makes every computation basin-context-aware; (3) physics loss forces physically meaningful gradient encoding.
+- **SCANet shatters the zero-shot transfer ceiling** with 43.3% direction accuracy — a +7.1pp leap over PI-GAN (36.2%) and +8.7pp over U-FNO (34.6%). Its transfer gap of just **-13.1pp** is nearly half that of U-FNO (-21.1pp) and a third of U-Net's (-33.0pp).
+- The three synergistic effects behind SCANet's transfer dominance: (1) cross-attention learns to weight spatial regions by relevance, not by fixed position — this transfers across basins with different storm morphologies; (2) early context fusion means every spectral/local computation is basin-context-aware from the start; (3) physics loss forces the backbone to encode physically meaningful gradients, which are universal across basins.
+- **U-FNO still dominates intensity transfer** (48.0%), suggesting spectral-spatial gated fusion captures intensity-relevant features (SST, shear patterns) that SCANet's lighter local branch misses.
+- **U-Net suffers the largest gap** (-33.0pp direction) — its 39.1M parameters overfit to WP-specific patterns. Being the best in-basin does not mean being the best at transfer.
 
 #### Fine-Tuned Performance (SP Test, 354 samples)
 
 | Model | Dir Acc | Dir F1 | Int Acc | Int F1 | Dir Recovery |
 |-------|--------:|-------:|--------:|-------:|-------------:|
-| **U-Net** | **39.8%** | **33.2%** | **49.9%** | **42.9%** | **+3.0pp** |
-| SCANet | 38.1% | 30.3% | 43.1% | 35.2% | -5.2pp |
-| FNO | 35.4% | 26.9% | 31.9% | 21.2% | +1.1pp |
-| U-Net+FiLM | 34.6% | 24.9% | 45.8% | 38.2% | +0.8pp |
-| FNO v2 | 27.0% | 20.6% | 39.8% | 30.4% | +0.8pp |
+| **U-Net+FiLM** | **38.4%** | 27.1% | 44.4% | 38.6% | **+6.0pp** |
+| SCANet | 38.1% | **30.3%** | 43.1% | 35.2% | -5.2pp |
+| U-Net | 31.6% | 24.0% | 43.9% | 34.7% | +4.6pp |
+| U-FNO | 30.8% | 29.9% | **49.0%** | **40.7%** | -3.8pp |
 | PI-GAN | 26.4% | 20.2% | 49.9% | 39.7% | -9.8pp |
 | ResNet-152 | 25.6% | 21.3% | 49.6% | 42.3% | -0.3pp |
-| U-FNO | 22.6% | 18.7% | 44.1% | 37.9% | -9.6pp |
+| FNO | 22.9% | 16.5% | 34.1% | 27.6% | +0.8pp |
+| FNO v2 | 15.3% | 9.1% | 35.1% | 21.9% | -1.9pp |
 
 **Key observations:**
-- **U-Net leads fine-tuned direction** (39.8%) and intensity (49.9%), benefiting from its augmentation suite and spatial inductive biases that adapt well to SP with limited data.
-- **SCANet degrades after fine-tuning** (-5.2pp direction, from 43.3% to 38.1%) — its zero-shot representations are already so basin-agnostic that the tiny 354-sample SP set introduces noise rather than useful signal. This is evidence of genuinely basin-invariant features.
-- **U-FNO suffers significant fine-tuning collapse** (-9.6pp direction, from 32.2% to 22.6%), suggesting its compact 1.0M params overfit to the tiny SP fine-tuning set.
-- **PI-GAN also collapses** (-9.8pp direction recovery), confirming that adversarial training creates fragile representations that destabilise with limited fine-tuning data.
+- **U-Net+FiLM benefits most from fine-tuning** (+6.0pp direction recovery), reaching 38.4%. Its FiLM conditioning allows rapid adaptation to SP's different seasonal patterns with minimal catastrophic forgetting.
+- **SCANet degrades after fine-tuning** (-5.2pp direction, from 43.3% to 38.1%). This is the **fine-tuning paradox**: its zero-shot representations are already so basin-agnostic that the tiny 354-sample SP set introduces noise rather than useful signal. This is actually evidence that SCANet has learned genuinely basin-invariant features.
+- **PI-GAN suffers the worst fine-tuning collapse** (-9.8pp direction recovery, from 36.2% to 26.4%). The GAN's physics-informed representations are fragile — fine-tuning with only 354 samples destabilises the generator-discriminator equilibrium.
+- **U-FNO loses ground on direction** (-3.8pp) but maintains strong intensity (49.0%). Its compact 2.5M params overfit to the tiny SP fine-tuning set.
 
-### PI-GAN vs SCANet: The physics delivery lesson
+### The PI-GAN → SCANet lesson
+
+PI-GAN proved that physics losses improve transfer. SCANet proved that you don't need a GAN to deliver them. Comparing the two models with physics losses:
 
 | Metric | PI-GAN (10.0M) | SCANet (3.7M) | SCANet advantage |
 |--------|:--------------:|:------------:|:----------------:|
@@ -504,55 +473,40 @@ U-Net+FiLM relies 2–3× more on environmental features than U-FNO, consistent 
 
 ## Summary of Key Findings
 
-### Final Scoreboard
-
-| | Best In-Basin Dir | Best In-Basin Int | Best Zero-Shot | Best Fine-Tuned | Smallest Transfer Gap |
-|-|-------------------|-------------------|----------------|-----------------|----------------------|
-| **Winner** | PI-GAN (57.0%) | SCANet (66.2%) | **SCANet (43.3% dir)** | U-Net (39.8% dir) | **SCANet (-13.1pp)** |
-| **Runner-up** | SCANet (56.4%) | ResNet (61.1%) | U-Net (36.8% dir) | SCANet (38.1% dir) | FNO (-13.2pp) |
-
 ### The efficiency–generalisation trade-off
 
 | Property | Best model | Why |
 |----------|-----------|-----|
-| In-basin direction | PI-GAN (57.0%) | Physics-informed adversarial training captures WP patterns |
+| In-basin direction | U-Net (60.0%) | Large capacity captures WP patterns |
 | In-basin intensity | SCANet (66.2%) | Cross-attention captures intensity-relevant patterns |
 | Zero-shot direction | **SCANet (43.3%)** | Cross-attention + early fusion + physics loss = basin-agnostic features |
-| Zero-shot intensity | U-Net (45.8%) | Augmentation suite learns generalisable intensity features |
-| Fine-tuned direction | U-Net (39.8%) | Spatial inductive biases adapt well with limited SP data |
-| Fine-tuned intensity | U-Net (49.9%) / PI-GAN (49.9%) | Both benefit from strong spatial priors |
-| Smallest transfer gap | **SCANet (-13.1pp)** | FNO close behind (-13.2pp) |
-| Parameter efficiency | U-FNO (1.0M) | Gated fusion achieves 47.9% dir with 10× fewer params |
+| Zero-shot intensity | U-FNO (48.0%) | Hybrid spectral-spatial fusion generalises |
+| Fine-tuned direction | U-Net+FiLM (38.4%) | FiLM enables fast adaptation with small data |
+| Fine-tuned intensity | PI-GAN (49.9%) | Physics features aid intensity adaptation |
+| Smallest transfer gap | **SCANet (-13.1pp)** | Nearly half of U-FNO's gap (-21.1pp) |
+| Parameter efficiency | U-FNO (2.5M) | Gated fusion achieves 55.7% dir with 16× fewer params |
 
 ### The five lessons
 
-1. **Architectural inductive biases > raw capacity**: In a data-limited regime (3,252 samples), the right structure matters more than more parameters. SCANet (3.7M) beats U-Net (9.8M) on zero-shot transfer by +6.5pp. U-FNO (1.0M) achieves competitive intensity (60.0%) with 10× fewer params than U-Net.
+1. **Architectural inductive biases > raw capacity**: In a data-limited regime (3,252 samples), the right structure matters more than more parameters. SCANet (3.7M) beats U-Net (39M) on zero-shot transfer by +16.3pp. U-FNO (2.5M) outperforms ResNet (58.7M) on nearly every metric.
 
 2. **Spectral-spatial hybrids learn transferable features**: Both U-FNO's and SCANet's gated fusion distribute reliance across channels, creating robust representations that survive distributional shift. U-FNO's max feature drop is 6.9pp vs 20.6pp for U-Net+FiLM.
 
-3. **Physics constraints improve zero-shot transfer, but delivery matters**: PI-GAN proved physics losses help (36.2% vs 33.8% for U-Net+FiLM). SCANet proved you don't need a GAN to deliver them — auxiliary supervised heads are simpler, more stable, and more effective (43.3% zero-shot).
+3. **Physics constraints improve zero-shot transfer, but delivery matters**: PI-GAN proved physics losses help (36.2% vs 32.4% for U-Net+FiLM). SCANet proved you don't need a GAN to deliver them — auxiliary supervised heads are simpler, more stable, and more effective (43.3% zero-shot).
 
-4. **Spatially-varying modulation > spatially-uniform modulation**: SCANet's cross-attention produces different modulation at different spatial locations depending on context. FiLM applies the same scale/shift everywhere. This is the key architectural difference that explains the -13.1pp vs -22.5pp transfer gap.
+4. **Spatially-varying modulation > spatially-uniform modulation**: SCANet's cross-attention produces different modulation at different spatial locations depending on context. FiLM applies the same scale/shift everywhere. This is the key architectural difference that explains the -13.1pp vs -24.0pp transfer gap.
 
-5. **Fine-tuning is a double-edged sword**: U-Net benefits most from fine-tuning (+3.0pp direction recovery), while SCANet and U-FNO degrade (-5.2pp and -9.6pp respectively). Models with strong zero-shot representations can be harmed by fine-tuning on tiny target datasets (354 samples). The deployment scenario dictates the strategy: **zero-shot → SCANet**, **fine-tuned → U-Net**.
-
-### The Data Dilemma
-
-With only 3,252 training samples, all models face a fundamental tension:
-- Larger models (U-Net 9.8M) learn strong in-basin features and transfer reasonably well thanks to augmentation
-- Smaller models (U-FNO 1.0M) learn transferable features but plateau on in-basin accuracy
-- **Architecture matters more than size**: SCANet (3.7M) beats U-Net (9.8M) on zero-shot transfer by +6.5pp
-- The deployment scenario dictates the winner: **in-basin → PI-GAN/SCANet**, **cross-basin → SCANet**, **fine-tuned → U-Net**
+5. **Temporal conditioning enables adaptation**: FiLM's dynamic feature modulation (conditioned on storm phase, season, time of day) gives U-Net+FiLM the best fine-tuning recovery (+6.0pp). When target-domain data is available, FiLM-based adaptation is the best strategy. SCANet's zero-shot representations are so strong that fine-tuning actually degrades them (-5.2pp).
 
 ### Model recommendation by deployment scenario
 
 | Scenario | Recommended model | Rationale |
 |----------|------------------|-----------|
-| In-basin forecasting (abundant data) | PI-GAN or SCANet | Highest WP direction accuracy (57.0% / 56.4%) |
+| In-basin forecasting (abundant data) | U-Net | Highest WP direction accuracy (60.0%) |
 | Cross-basin transfer (no target data) | **SCANet** | Best zero-shot (43.3%), smallest gap (-13.1pp) |
-| Cross-basin transfer (some target data) | U-Net | Best fine-tuned direction (39.8%) and intensity (49.9%) |
-| Resource-constrained deployment | U-FNO | Best accuracy/param ratio (1.0M, 47.9% WP dir) |
-| Intensity-focused forecasting | SCANet or FNO | 66.2% and 60.6% WP intensity respectively |
+| Cross-basin transfer (some target data) | U-Net+FiLM | Best fine-tuning recovery (+6.0pp) |
+| Resource-constrained deployment | U-FNO | Best accuracy/param ratio (2.5M, 34.6% ZS dir) |
+| Intensity-focused forecasting | SCANet or U-FNO | 66.2% and 63.0% WP intensity respectively |
 
 ---
 
@@ -567,9 +521,6 @@ With only 3,252 training samples, all models face a fundamental tension:
 | Mar 14 | Iteration | U-Net reaches 62.5% with augmentation | `base_ch=64` overfits, revert to 32 |
 | Mar 18 | Supervisor meeting | Feedback received | Deprioritise PINN; add FiLM, FNO v2, U-FNO, PI-GAN |
 | Mar 20 | New architectures | 3 new models + ablation framework built | Temporal features, gated fusion, physics constraints |
-| Mar 23 | HPO | Optuna trials for all models | U-FNO best HPO (63.2%), only needs 2 layers |
+| Mar 23 | HPO | Optuna trials for 6 models | U-FNO best HPO (63.2%), only needs 2 layers |
 | Mar 24 | PI-GAN evaluated | Physics losses help but GAN is unstable | Design SCANet: physics loss without adversarial training |
 | Mar 24 | SCANet + final eval | 8-model comparison + ablation + SHAP | SCANet = best zero-shot (43.3%, -13.1pp gap); U-Net+FiLM = best fine-tuned |
-
-**Total training time:** ~12 hours (HPO + 300-epoch runs, 8 models on RTX 5090)
-**Total VRAM peak:** ~30GB / 32GB

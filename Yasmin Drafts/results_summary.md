@@ -7,107 +7,144 @@
 - **Direction** (8 classes): E, SE, S, SW, W, NW, N, NE
 - **Intensity change** (4 classes): Weakening, Steady, Slow-intensification, Rapid-intensification
 
-**Dataset:** TropiCycloneNet (TCND) — WP train (3,252 samples, 105 storms), WP val (730, 26 storms), SP test (367, 15 storms), SP fine-tune (354 train, 81 val).
-
-**Training:** 20 Optuna HPO trials (50 epochs each) → 300-epoch full training with best config. All 5 models trained in parallel on RTX 5090 (32GB VRAM, ~30GB peak usage).
+**Dataset:** TropiCycloneNet (TCND) — WP train (3,252 samples, 105 storms), WP val (730 samples, 26 storms), SP test (367 samples, 15 storms), SP fine-tune train (354 samples, 12 storms), SP fine-tune val (81 samples, 3 storms).
 
 ---
 
-## Optimised Hyperparameters (Optuna, 20 trials)
-
-| Model | Key Config | Params | HPO Best |
-|-------|-----------|-------:|--------:|
-| U-Net | base_ch=32, 5 levels, head=256, drop_path=0.065, bs=32 | 39.1M | 61.4% |
-| U-Net+FiLM | base_ch=48, 3 levels, head=512, time_emb=64, bs=32 | 5.9M | 61.4% |
-| FNO | hidden=64, modes=15, 4 layers, dropout=0.11, bs=64 | 7.4M | 60.7% |
-| FNO v2 | hidden=48, modes=20, 5 layers, padding=9, time_emb=64, bs=64 | 9.3M | 61.9% |
-| U-FNO | hidden=48, modes=16, 2 layers, padding=13, dropout=0.11, bs=64 | 2.5M | 63.2% |
-
----
-
-## Model Comparison (300-Epoch Full Training)
+## Model Comparison
 
 ### In-Basin Performance (WP Validation)
 
-| Model | Params | Dir Acc | Dir F1 | Int Acc | Int F1 | Epochs |
-|-------|-------:|--------:|-------:|--------:|-------:|-------:|
-| **U-Net** | 39.1M | **0.633** | **0.464** | 0.581 | 0.471 | 134/300 |
-| U-FNO | 2.5M | 0.610 | 0.463 | 0.585 | 0.463 | 100/300 |
-| FNO v2 | 9.3M | 0.597 | 0.374 | 0.590 | 0.407 | 135/300 |
-| U-Net+FiLM | 5.9M | 0.592 | 0.426 | **0.603** | **0.492** | 120/300 |
-| FNO | 7.4M | 0.579 | 0.401 | 0.641 | 0.471 | 114/300 |
+| Model | Params | Dir Acc | Dir F1 | Int Acc | Int F1 | Epochs | Notes |
+|-------|-------:|--------:|-------:|--------:|-------:|-------:|-------|
+| **U-Net + FiLM** | 10.0M | **0.629** | **0.465** | 0.564 | **0.471** | 151/300 | Best direction + intensity F1 |
+| **U-Net** | 9.8M | 0.625 | 0.447 | 0.510 | 0.433 | 144/300 | Strong baseline |
+| U-FNO | 1.0M | 0.508 | 0.401 | **0.625** | 0.499 | 41/150 | Best intensity acc; tiny model |
+| ResNet-152 | 58.7M | 0.512 | 0.404 | 0.549 | 0.463 | 31/80 | Overparameterised |
+| FNO v2 | 0.9M | 0.493 | 0.409 | 0.567 | 0.459 | full | +padding, +FiLM, +3 layers |
+| FNO | 10.3M | 0.503 | 0.364 | 0.558 | 0.410 | 18/80 | Severe overfitting |
 
 ### Zero-Shot Cross-Basin Transfer (SP Test)
 
-| Model | Dir Acc | Dir F1 | Int Acc | Int F1 | Dir Gap |
-|-------|--------:|-------:|--------:|-------:|--------:|
-| **U-FNO** | **0.379** | **0.295** | **0.523** | **0.409** | -0.231 |
-| FNO v2 | 0.368 | 0.221 | 0.485 | 0.333 | -0.229 |
-| U-Net+FiLM | 0.335 | 0.270 | 0.493 | 0.396 | -0.257 |
-| FNO | 0.330 | 0.245 | 0.485 | 0.338 | -0.249 |
-| U-Net | 0.311 | 0.222 | 0.411 | 0.340 | **-0.322** |
+| Model | Dir Acc | Dir F1 | Int Acc | Int F1 | Dir Gap | Int Gap |
+|-------|--------:|-------:|--------:|-------:|--------:|--------:|
+| **U-Net** | **0.414** | **0.293** | 0.360 | 0.291 | **-0.211** | -0.150 |
+| U-Net + FiLM | 0.390 | 0.261 | 0.362 | 0.301 | -0.239 | -0.202 |
+| U-FNO | 0.202 | 0.168 | **0.433** | **0.403** | -0.307 | -0.192 |
+| ResNet-152 | 0.272 | 0.212 | 0.384 | 0.319 | -0.240 | -0.165 |
+| FNO v2 | 0.213 | 0.176 | 0.395 | 0.385 | -0.280 | -0.172 |
+| FNO | 0.248 | 0.217 | 0.357 | 0.300 | -0.255 | -0.201 |
 
-### Fine-Tuned Performance (SP Test, 354 samples)
+### Fine-Tuned Performance (SP Test)
 
-| Model | Dir Acc | Dir F1 | Int Acc | Int F1 | Dir Recovery |
-|-------|--------:|-------:|--------:|-------:|-------------:|
-| **U-Net+FiLM** | **0.409** | 0.281 | 0.466 | 0.395 | +0.074 |
-| FNO | 0.354 | 0.273 | 0.520 | **0.421** | +0.024 |
-| U-Net | 0.349 | 0.252 | 0.469 | 0.387 | +0.038 |
-| FNO v2 | 0.327 | 0.241 | **0.542** | 0.399 | -0.041 |
-| U-FNO | 0.316 | **0.306** | 0.490 | 0.422 | -0.063 |
+| Model | Dir Acc | Dir F1 | Int Acc | Int F1 | Dir Recovery | Int Recovery |
+|-------|--------:|-------:|--------:|-------:|-------------:|-------------:|
+| **U-Net** | **0.401** | **0.309** | 0.450 | 0.367 | -0.013 | +0.090 |
+| U-Net + FiLM | 0.390 | 0.273 | 0.392 | 0.331 | +0.000 | +0.030 |
+| U-FNO | 0.283 | 0.222 | 0.496 | 0.395 | +0.082 | +0.063 |
+| ResNet-152 | 0.294 | 0.234 | **0.501** | **0.430** | +0.022 | +0.117 |
+| FNO v2 | 0.267 | 0.215 | 0.507 | 0.441 | +0.054 | +0.112 |
+| FNO | 0.346 | 0.272 | 0.335 | 0.288 | +0.098 | -0.022 |
 
 ---
 
 ## Key Findings
 
 ### Direction Forecasting
-- **U-Net leads in-basin (63.3%)** with 5-level encoder-decoder (39.1M params), but suffers the worst transfer gap (-32.2pp).
-- **U-FNO leads zero-shot transfer (37.9%)** with only 2.5M params — spectral+spatial fusion creates transferable features.
-- **U-Net+FiLM leads after fine-tuning (40.9%)** — temporal conditioning enables effective adaptation to new basins.
+- **U-Net + FiLM achieves best WP direction (62.9%)** with full training, slightly surpassing the base U-Net (62.5%). FiLM time conditioning provides a small but consistent improvement in-basin.
+- **U-Net retains best zero-shot transfer (41.4%)** — the FiLM model's added temporal features don't transfer as well across basins (39.0%).
+- U-FNO (1.0M params) reaches only 50.8% WP direction despite 41 epochs — the spectral+spatial hybrid underperforms for direction.
 
-### Intensity Classification
-- **FNO achieves best WP intensity (64.1%)** — spectral convolutions excel at global thermodynamic patterns.
-- **U-Net+FiLM achieves best intensity F1 (49.2%)** — temporal features improve per-class balance.
-- **U-FNO achieves best zero-shot intensity (52.3%)** — again, the best transferer.
+### Intensity Change Classification
+- **U-FNO achieves best WP intensity (62.5%)** with only 1M parameters — the spectral+spatial hybrid is highly effective for global patterns that drive intensification.
+- **U-Net + FiLM achieves best WP intensity F1 (47.1%)** and best in-basin intensity acc (56.4%) among non-spectral models.
+- ResNet-152 achieves the best fine-tuned intensity (50.1%) via two-phase strategy.
 
-### The Efficiency-Generalisation Trade-off
-| Scenario | Best Model | Why |
-|----------|-----------|-----|
-| In-basin deployment | U-Net (63.3%) | Largest model memorises WP patterns best |
-| Cross-basin (no local data) | U-FNO (37.9%) | Compact spectral+spatial features transfer best |
-| Cross-basin (with fine-tuning) | U-Net+FiLM (40.9%) | Temporal conditioning enables effective adaptation |
-| Intensity forecasting | FNO (64.1% WP) | Spectral methods capture global thermodynamic state |
-| Parameter efficiency | U-FNO (61.0% with 2.5M) | 16x smaller than U-Net with only 2.3pp less accuracy |
+### FiLM Time Conditioning Impact
+With full training (151 epochs), U-Net + FiLM vs U-Net baseline:
+- **Direction:** 62.9% vs 62.5% (+0.4pp) — small improvement
+- **Intensity:** 56.4% vs 51.0% (+5.4pp) — substantial improvement
+- **Dir F1:** 0.465 vs 0.447 (+1.8pp) — improved per-class balance
+- **Int F1:** 0.471 vs 0.433 (+3.8pp) — improved per-class balance
 
-### HPO Insights
-- All models converged to LR ~ 2-5e-4, confirming the data distribution dominates optimisation
-- U-FNO's optimal 2-layer architecture was unexpected — depth hurts when branches provide sufficient expressivity
-- U-Net preferred depth (5 levels) over width, while U-Net+FiLM preferred width (48ch) over depth (3 levels)
-- FNO v2 benefited from 20 Fourier modes (vs 12 baseline) — higher spectral resolution improves atmospheric feature extraction
+FiLM time conditioning **benefits intensity prediction substantially** (+5.4pp accuracy). Temporal features (storm progress, hour/month cycles) help the model learn seasonal and diurnal patterns relevant to intensification dynamics. The direction improvement is smaller but still positive.
+
+### U-FNO Gate Analysis
+The learned gate weights show branch preferences per layer:
+
+| Layer | Spectral | U-Net | Residual |
+|------:|---------:|------:|---------:|
+| 1 | 0.40 | 0.27 | 0.33 |
+| 2 | 0.40 | 0.30 | 0.30 |
+| 3 | 0.38 | 0.31 | 0.31 |
+
+- **Spectral branch dominates** in all layers (38-40%), confirming global patterns matter most.
+- U-Net branch importance **increases** in deeper layers (27% → 31%), suggesting local features become more important for refined predictions.
+- Near-uniform distribution indicates all three branches contribute meaningfully.
+
+### Transfer Gap Summary
+- All models suffer 21-31pp direction transfer gap (WP → SP zero-shot).
+- U-Net has the smallest gap (-21.1pp direction), U-FNO the largest (-30.7pp).
+- Fine-tuning recovers intensity better than direction across all models.
 
 ---
 
-## Ablation Study (U-Net, WP Validation — from prior experiments)
+## Ablation Study (U-Net, WP Validation)
 
 ### Grid Channel Importance (Leave-One-Out)
-| Channel | Dir Drop | Int Drop |
-|---------|--------:|--------:|
-| **u_wind** | **+17.5pp** | -1.1pp |
-| **v_wind** | **+11.6pp** | +4.3pp |
-| wind_shear | +1.0pp | +3.4pp |
-| **SST** | -0.4pp | **+4.8pp** |
+| Channel Group | Dir Acc Drop | Int Acc Drop |
+|--------------|------------:|-----------:|
+| **u_wind** | **+0.175** | -0.011 |
+| **v_wind** | **+0.116** | +0.043 |
+| wind_shear | +0.010 | +0.034 |
+| vorticity | +0.003 | -0.014 |
+| SST | -0.004 | **+0.048** |
+| geopotential | -0.006 | -0.010 |
+
+- **u_wind is critical for direction** (17.5pp drop when removed) — zonal wind directly encodes storm movement.
+- **v_wind also important** (11.6pp drop) — meridional wind indicates N/S tracking.
+- **SST is critical for intensity** (4.8pp drop) — warm ocean drives intensification.
+
+### Env Feature Importance (Leave-One-Out)
+| Feature Group | Dir Acc Drop | Int Acc Drop |
+|--------------|------------:|-----------:|
+| history_dir_12h | +0.008 | +0.001 |
+| move_velocity | +0.003 | -0.007 |
+| wind | +0.000 | +0.014 |
+| **intensity_class** | -0.004 | **+0.049** |
+| month | -0.003 | +0.012 |
+| history_dir_24h | -0.007 | +0.026 |
+| history_int_24h | -0.007 | +0.019 |
+
+- **intensity_class** is most critical env feature for intensity prediction (4.9pp drop).
+- Env features have minimal individual impact on direction — the grid channels dominate.
 
 ### Modality Ablation
-- **Grid essential for direction** (31pp drop without). **Env essential for intensity** (12pp drop without).
-- **1D track data redundant** — removing it slightly improves performance.
+| Config | Dir Acc | Int Acc |
+|--------|--------:|--------:|
+| Baseline (all) | 0.625 | 0.510 |
+| No Grid | 0.315 | 0.384 |
+| No Env | 0.619 | 0.390 |
+| No 1D | 0.626 | 0.522 |
+| Only Grid | 0.622 | 0.371 |
+| Only Env | 0.316 | 0.389 |
+| Only 1D | 0.293 | 0.269 |
+
+- **Grid is essential for direction** (31pp drop without it, only 0.3pp drop without env/1d).
+- **Env is essential for intensity** (12pp drop without it) — environmental features encode thermodynamic state.
+- **1D track data is redundant** — removing it slightly improves both direction and intensity.
 
 ---
 
-## Training Infrastructure
+## Training Notes
 
-- **GPU:** NVIDIA RTX 5090 (32GB VRAM)
-- **Peak VRAM:** ~30GB (all 5 models training in parallel)
-- **Total time:** ~7 hours (HPO + 300-epoch training)
-- **Framework:** PyTorch + Optuna + OneCycleLR + EMA
-- **Augmentation:** CutOut (16x16), Gaussian noise (σ=0.05), channel dropout (15%), label smoothing (0.05)
+- **All models fully trained with early stopping:**
+  - U-Net: 144/300 epochs
+  - U-Net + FiLM: 151/300 epochs (EMA, augmentation suite)
+  - U-FNO: 41/150 epochs (early stopped — overfits quickly)
+  - ResNet-152: 31/80 epochs
+  - FNO: 18/80 epochs (severe overfitting)
+  - FNO v2: full training
+- All models use inverse-frequency class weights and label smoothing (0.05).
+- All models use WP-only normalisation (z-score statistics from WP train only).
+- GPU: NVIDIA RTX 5090 (32GB VRAM). Both U-Net+FiLM and U-FNO run in parallel (~8GB combined).
