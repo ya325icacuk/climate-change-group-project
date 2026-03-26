@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-24T12:30:00.452786",
+  "seed": 42,
+  "wp_val_frac": 0.2,
+  "sp_test_frac": 0.5,
+  "sp_ft_val_frac": 0.2,
+  "include_derived_channels": true
+}
