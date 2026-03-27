@@ -53,7 +53,7 @@ These are implemented in the supplementary notebooks but not included in the mai
 ## Repository Structure
 
 ```
-├── ML for Tackling Climate Change Team Log from Team 2.xlsx  <- Evaluation from team 2
+├── Peer Evaluation Form for Group 5.pdf             <- Evaluation from team 2
 ├── ML for Climate Change - Group Project.pdf        <- Presentation File
 ├── main-analysis.ipynb                              <- Start here: full report with results
 ├── requirements.txt                                 <- Python dependencies
