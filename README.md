@@ -53,6 +53,7 @@ These are implemented in the supplementary notebooks but not included in the mai
 ## Repository Structure
 
 ```
+├── ML for Climate Change - Group Project.pdf        <- Presentation File
 ├── main-analysis.ipynb                              <- Start here: full report with results
 ├── requirements.txt                                 <- Python dependencies
 │
